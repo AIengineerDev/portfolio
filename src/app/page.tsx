@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Hero } from "@/components/Hero";
 import { ProjectCard } from "@/components/ProjectCard";
 import { Reveal } from "@/components/Reveal";
+import { profile, stats } from "@/data/profile";
 import { projects } from "@/data/projects";
 
 const focus = [
@@ -60,11 +61,33 @@ export default function Home() {
               world.
             </h2>
             <p className="mt-6 max-w-2xl leading-relaxed text-mist-400">
-              My focus is coordination under uncertainty — several agents, incomplete information,
-              degraded communication, and a deadline. That means building the simulator as
-              carefully as the policy, and judging results by how they degrade rather than by their
-              best-case score.
+              Five-plus years of AI/ML engineering on top of nine years leading QA automation —
+              LLM and RAG systems at InRhythm for Fidelity and Wayfair, a 27.9M-node knowledge
+              graph platform I built and run as co-founder of uSport.ai, and multi-agent RL
+              research at UC Berkeley. I tend to own the whole lifecycle, and I judge a system by
+              how it degrades rather than by its best-case score.
             </p>
+
+            <div className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-ink-600/70 bg-ink-600/40 sm:grid-cols-2 lg:grid-cols-4">
+              {stats.map((s) => (
+                <div key={s.label} className="bg-ink-900/80 p-5">
+                  <div className="text-2xl font-semibold tabular-nums text-flux-400">
+                    {s.value}
+                  </div>
+                  <div className="mt-1 text-xs leading-snug text-mist-400">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <Link
+              href="/about"
+              className="group mt-8 inline-flex items-center gap-2 text-sm font-medium text-mist-300 transition-colors hover:text-mist-200"
+            >
+              Full experience &amp; education
+              <span className="transition-transform duration-300 group-hover:translate-x-1.5">
+                →
+              </span>
+            </Link>
           </Reveal>
 
           <div className="mt-14 grid gap-6 sm:grid-cols-3">
@@ -97,10 +120,10 @@ export default function Home() {
               </p>
               <div className="relative mt-9 flex flex-wrap justify-center gap-3">
                 <a
-                  href="mailto:alex.lavre2@gmail.com"
+                  href={`mailto:${profile.email}`}
                   className="rounded-full bg-mist-200 px-6 py-3 text-sm font-medium text-ink-950 transition-transform hover:scale-[1.03]"
                 >
-                  alex.lavre2@gmail.com
+                  {profile.email}
                 </a>
                 <Link
                   href="/projects/omnisearch"
