@@ -142,7 +142,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
         {project.specs && (
           <Reveal className="mt-16">
             <h2 className="text-2xl font-semibold tracking-tight text-mist-200">
-              Evaluation setup
+              {project.specsHeading ?? "Evaluation setup"}
             </h2>
             <dl className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-ink-600 bg-ink-600 sm:grid-cols-2">
               {project.specs.map((row) => (

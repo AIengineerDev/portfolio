@@ -65,6 +65,7 @@ export type Project = {
   metrics: Metric[];
   sections: Section[];
   specs?: SpecRow[];
+  specsHeading?: string;
   dropout?: DropoutPoint[];
   architecture?: Architecture;
   tables?: ResultsTable[];
@@ -504,7 +505,218 @@ const careerProjection: Project = {
   },
 };
 
-export const projects: Project[] = [omniSearch, careerProjection];
+const onpace: Project = {
+  slug: "onpace",
+  title: "Onpace",
+  tagline:
+    "A swim-coaching iOS app where AI writes training plans out of a knowledge graph — and is never allowed to overrule the coach.",
+  year: "2026",
+  role: "Solo — product, mobile, backend, ML",
+  status: "shipped",
+  domain: "Mobile · Applied LLM",
+  accent: ["#4aa8ff", "#4ce9d9"],
+  summary:
+    "Onpace is a swim training app on the iOS App Store: swimmers get structured plans and video technique review, coaches get a roster and an assistant that drafts work for them to edit. The interesting constraint is architectural — every generative feature is scoped so the model proposes and the coach disposes. Built and shipped solo, from the Cypher queries to the App Store listing.",
+  stack: [
+    "React Native",
+    "Expo 54",
+    "TypeScript",
+    "Firebase Auth",
+    "Firestore",
+    "Cloud Functions",
+    "Claude Sonnet",
+    "Neo4j Aura",
+    "Vector RAG",
+    "RevenueCat",
+    "Stripe",
+    "EAS Build",
+  ],
+  metrics: [
+    {
+      label: "On the App Store",
+      value: "v1.0.4",
+      detail: "Health & Fitness — free, with an Onpace Pro subscription",
+    },
+    {
+      label: "100 m pace, six weeks",
+      value: "−7 s",
+      detail: "1:45 → 1:38, swimmer-reported in a review",
+    },
+    {
+      label: "Beginner to continuous",
+      value: "400 m",
+      detail: "from not managing a single length, swimmer-reported",
+    },
+    {
+      label: "Plan generation",
+      value: "Hybrid RAG",
+      detail: "graph retrieval plus vector search over swim research",
+    },
+  ],
+  specsHeading: "Technical setup",
+  specs: [
+    { label: "Client", value: "React Native / Expo 54, TypeScript, iOS" },
+    { label: "Data", value: "Firestore with onSnapshot subscriptions, role-scoped" },
+    { label: "Generation", value: "Callable Cloud Function, Claude Sonnet" },
+    { label: "Retrieval", value: "Neo4j Aura swim graph + text-embedding-3-small (1536-d)" },
+    { label: "Billing", value: "RevenueCat web checkout, Stripe-backed" },
+    { label: "Auth", value: "Email/password, Google OAuth, passwordless magic link" },
+  ],
+  sections: [
+    {
+      heading: "The product",
+      body: [
+        "A swimmer signs up, completes onboarding — level, goals, sessions per week, pool length, available equipment, weekly mileage, physical limitations — and waits on a plan. A coach sees them arrive in a roster, generates a draft plan, edits it, and assigns it. From there the swimmer gets a daily workout, logs RPE and mood on completion, tracks progress, and can send technique video for review.",
+        "Both sides of that are one Expo app with a role-aware navigator. Firestore is the single source of truth, subscribed through onSnapshot so a coach's edit appears on the swimmer's phone without a refresh, and scoped by role — coaches subscribe to their whole roster, swimmers only to their own documents.",
+      ],
+    },
+    {
+      heading: "Plans come out of a knowledge graph, not a blank prompt",
+      body: [
+        "Plan generation runs server-side in a callable Cloud Function, so the Anthropic key and the Neo4j credentials never reach a phone. The model is Claude Sonnet, but the interesting part is what it is given to work with.",
+        "Retrieval is hybrid. A Neo4j Aura swim knowledge graph supplies real drills — execution descriptions, coaching cues, required equipment, skill levels — matched to the athlete's actual constraints. On top of that, vector search over reference plans and swim-research passages, embedded with text-embedding-3-small at 1536 dimensions, pulls in relevant precedent. The model composes from retrieved material rather than inventing sets from its own priors.",
+        "The Cypher queries and prompts are shared verbatim with the uSport.ai web product, so a plan generated on the phone is identical to one generated on the web. The vector half degrades gracefully: without an embeddings key those two queries no-op and graph retrieval still carries the generation.",
+      ],
+    },
+    {
+      heading: "Giving the model a memory so it stops repeating itself",
+      body: [
+        "A language model generating a training plan has no idea what it produced for the same athlete last week. Left alone it converges — similar sets, similar distances, the same drills in a slightly different order. For a swimmer following a plan for months, that is the difference between coaching and a random set generator.",
+        "So each athlete carries a short rolling history in Firestore. The four most recent generated sessions go back into the prompt as explicit context, and the three newest are persisted for next time. The model can see its own output and is asked to move away from it. Small mechanism, and it is the difference between a plan that progresses and one that loops.",
+      ],
+    },
+    {
+      heading: "The model proposes, the coach disposes",
+      body: [
+        "Every generative surface in the app is deliberately bounded, because a swim plan is a physical prescription and a wrong one injures a shoulder.",
+        "AI-generated plans arrive as drafts, tagged as drafts, into a coach's editor — never straight to a swimmer. The in-app workout adjustment cannot author a workout at all: given 'I only have 30 minutes' it modifies the coach's existing session, preserving its focus, its plan, and its authorship, and it honors safety constraints — a swimmer reporting shoulder pain gets paddles dropped and intensity downgraded rather than a cheerful substitution.",
+        "The video review tool follows the same rule in a stronger form: it never grades the swimmer. The coach narrates while watching the clip, and the tool turns their own words into timestamped marks against a closed vocabulary of stroke faults — crossover, dropped elbow, hip drop, late breakout — each with an editable cue. The coach accepts or rewrites every mark. The app structures the coach's judgment; it does not substitute for it.",
+        "That last feature currently ships as a deterministic keyword-and-sentiment extractor rather than a live speech-to-text and LLM pipeline. It works offline, it is predictable, and the taxonomy it emits is the same one the model path will emit — so the upgrade is a swap, not a redesign.",
+      ],
+    },
+    {
+      heading: "Shipping it alone",
+      body: [
+        "Everything between the idea and the App Store listing was mine: the Expo client and its EAS builds, Firestore rules and indexes, roughly twenty Cloud Functions covering plan generation, PDF export, invites, email verification, and subscription webhooks, plus the App Store submission itself.",
+        "Billing goes through RevenueCat web checkout over Stripe, with two surfaces chosen automatically — the native SDK paywall in a real build, and a hosted paywall link as fallback where the native module cannot load. Authentication offers email and password, Google OAuth, and passwordless magic links.",
+        "The reviews are what a coaching product is actually judged on: one swimmer took a 100 m pace from 1:45 to 1:38 in six weeks; another went from being unable to complete a single length to swimming 400 m continuously.",
+      ],
+    },
+  ],
+  architecture: {
+    caption:
+      "The client never sees a credential and never receives an unreviewed plan — generation and retrieval both live server-side.",
+    tiers: [
+      {
+        label: "Client — Expo / React Native",
+        accent: "#4aa8ff",
+        blocks: [
+          {
+            title: "Swimmer",
+            items: [
+              "6-step onboarding",
+              "Daily workout + RPE/mood log",
+              "Progress and streaks",
+              "Technique video upload",
+            ],
+          },
+          {
+            title: "Coach",
+            items: [
+              "Roster and pending members",
+              "Plan editor with AI draft",
+              "Narrated video review",
+              "Inbox and session booking",
+            ],
+          },
+          {
+            title: "Shared",
+            items: [
+              "Role-aware navigator",
+              "Firestore onSnapshot state",
+              "Role-scoped subscriptions",
+              "RevenueCat paywall",
+            ],
+          },
+        ],
+      },
+      {
+        label: "Generation — callable Cloud Function",
+        accent: "#4ce9d9",
+        blocks: [
+          {
+            title: "Model",
+            items: [
+              "Claude Sonnet",
+              "Prompts shared with the web product",
+              "Draft output only, never assigned",
+              "Safety constraints honored",
+            ],
+          },
+          {
+            title: "Retrieval",
+            items: [
+              "Neo4j swim knowledge graph",
+              "Drills matched to equipment & level",
+              "Vector search over research",
+              "text-embedding-3-small, 1536-d",
+            ],
+          },
+          {
+            title: "Anti-repetition",
+            items: [
+              "Rolling per-athlete history",
+              "4 recent sessions into the prompt",
+              "3 newest persisted forward",
+              "Model sees its own prior output",
+            ],
+          },
+        ],
+      },
+      {
+        label: "Platform",
+        accent: "#a488ff",
+        blocks: [
+          {
+            title: "Firebase",
+            items: [
+              "Auth: password, Google, magic link",
+              "Firestore rules + indexes",
+              "Storage for video clips",
+              "~20 Cloud Functions",
+            ],
+          },
+          {
+            title: "Commerce",
+            items: [
+              "RevenueCat web checkout",
+              "Stripe-backed subscriptions",
+              "Entitlement webhooks",
+              "Billing portal",
+            ],
+          },
+          {
+            title: "Release",
+            items: [
+              "EAS Build",
+              "App Store submission",
+              "Bundle ai.usport.onpace",
+              "Shipped v1.0.4",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  links: [
+    {
+      label: "Onpace on the App Store",
+      href: "https://apps.apple.com/us/app/onpace-swim-training/id6782388637",
+    },
+  ],
+};
+
+export const projects: Project[] = [omniSearch, careerProjection, onpace];
 
 export function getProject(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
