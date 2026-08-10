@@ -40,6 +40,16 @@ export type Architecture = {
   tiers: ArchTier[];
 };
 
+/** A plain results table. `highlight` bolds a column index. */
+export type ResultsTable = {
+  heading: string;
+  caption?: string;
+  columns: string[];
+  rows: string[][];
+  highlight?: number;
+  footnote?: string;
+};
+
 export type Project = {
   slug: string;
   title: string;
@@ -57,13 +67,13 @@ export type Project = {
   specs?: SpecRow[];
   dropout?: DropoutPoint[];
   architecture?: Architecture;
+  tables?: ResultsTable[];
   gallery?: Gallery[];
   team?: string[];
   links?: { label: string; href: string }[];
 };
 
-export const projects: Project[] = [
-  {
+const omniSearch: Project = {
     slug: "omnisearch",
     title: "OmniSearch",
     tagline:
@@ -261,8 +271,240 @@ export const projects: Project[] = [
         href: "https://www.ischool.berkeley.edu/programs/mids/capstone/2026b-summer/omnisearch-simulation-platform-test-coordinated-drone-and",
       },
     ],
+};
+
+const careerProjection: Project = {
+  slug: "career-projection",
+  title: "Career Projection",
+  tagline:
+    "Predicting whether a high-school athlete reaches the next level — across eight sports, with the model's own limits shipped alongside its numbers.",
+  year: "2026",
+  role: "uSport.ai · ML design, pipelines, validation",
+  status: "shipped",
+  domain: "Applied ML · Sports Analytics",
+  accent: ["#a488ff", "#4ce9d9"],
+  summary:
+    "Recruiting runs on confident guesses about teenagers. Career Projection replaces some of that with measured probability: given a high-school athlete's box scores, recruiting overlays, and profile signals, how likely are they to reach a D1 roster, or a professional league? It ships across eight sports — and it is built so that a coach reading a percentage can also read exactly how much to trust it.",
+  stack: [
+    "Python",
+    "scikit-learn",
+    "Gradient boosting",
+    "Logistic regression",
+    "Pandas / NumPy",
+    "Neo4j",
+    "Next.js",
+    "TypeScript",
+    "Playwright / Scrapy",
+  ],
+  metrics: [
+    { label: "Sports in production", value: "8", detail: "basketball through beach volleyball" },
+    {
+      label: "Athletes in the training set",
+      value: "30.5K",
+      detail: "lacrosse HS→D1 alone; 18.3K D1 / 12.3K non-D1",
+    },
+    {
+      label: "Top-200 precision",
+      value: "99.5%",
+      detail: "temporal holdout, 1.64× the 60.8% base rate",
+    },
+    {
+      label: "Calibration error",
+      value: "0.6 pp",
+      detail: "HS→Pro men — displayed percentages mean what they say",
+    },
+  ],
+  specs: [
+    { label: "Sports", value: "Basketball, lacrosse, football, soccer, tennis, golf, volleyball, beach VB" },
+    { label: "Prediction tasks", value: "HS→D1, HS→Pro, College→Pro, career longevity" },
+    { label: "Model shape", value: "Pipeline(median impute → scale → LogReg | GBM)" },
+    { label: "Validation", value: "5-fold stratified CV + forward-in-time temporal holdout" },
+    { label: "Calibration", value: "10-bucket out-of-fold ECE, reported per model" },
+    { label: "Serving", value: "LogReg coefficients exported to JSON, scored in-browser" },
+  ],
+  sections: [
+    {
+      heading: "The problem",
+      body: [
+        "A recruiting platform that tells a family their child has a 90% chance of playing Division I has made a promise. If that number is decorative — if it came from a model validated by shuffling rows at random — the promise is worthless and the family cannot tell.",
+        "So the interesting engineering problem was never 'train a classifier'. It was: produce a probability a coach can act on, and make the uncertainty as visible as the estimate.",
+      ],
+    },
+    {
+      heading: "Eight pipelines, one shape",
+      body: [
+        "Each sport gets its own pipeline — scrape, ETL into the Neo4j graph, feature build, train, export — but they all share a structure: a scikit-learn pipeline of median imputation, scaling, and either logistic regression or gradient boosting, with features defined once in a module shared by trainer and scorer so the two cannot drift apart.",
+        "Basketball alone carries six distinct prediction problems: HS→D1 for men and women, HS→NBA, HS→WNBA, College→NBA/WNBA, and a regression for NBA career length. Features combine box scores from MaxPreps with recruiting overlays — McDonald's All-American, ESPN-100, 247Sports, On3 consensus — all sourced before the moment of prediction so there is no temporal leakage.",
+        "Lacrosse pulls from a different signal set entirely: 30,585 committed athletes with ranking, star rating, profile completeness, Hudl engagement, position, and state, exported nightly from the recruiting graph.",
+      ],
+    },
+    {
+      heading: "Where the honest number came from",
+      body: [
+        "Random k-fold cross-validation is the wrong tool here. Shuffling athletes across graduating classes lets the model learn from cohorts that, in production, have not happened yet. It reliably reports a number better than the one you will get.",
+        "So every sport with a class year gets a forward-in-time split: train on athletes graduating on or before a cutoff, test on everyone after. The drift is not small. Lacrosse HS→Pro for men scored 0.869 ROC-AUC under random folds and 0.706 under temporal holdout — a 16-point drop, and the 0.706 is what the product displays.",
+        "For basketball the back-test harness ships but the labelled scrape data is not committed, so on a fresh clone it reports the missing files and exits rather than writing fabricated numbers. The interface reports random-fold AUC and the documentation says plainly that it is doing so.",
+      ],
+    },
+    {
+      heading: "Ranking well is not the same as being right",
+      body: [
+        "ROC-AUC measures whether the model orders athletes correctly. It says nothing about whether '80%' means eighty percent. Those come apart badly in practice, so every model also reports 10-bucket out-of-fold Expected Calibration Error.",
+        "The men's HS→Pro model originally trained with balanced class weights and scored 24 percentage points of calibration error — predicting above 90% where the real rate was 5%. Class balancing optimizes ranking as though the positive class were half the population; it is fine for sorting and it lies about probability. Retrained without balancing, ECE came down to 0.6 pp at a 1.7% base rate. That is the version that shipped.",
+        "Ranking quality survives where it matters most: in the temporal test cohort of 18,755 athletes at a 60.8% base rate, the model's top 200 predictions were 199 correct — 99.5% precision, 1.64× lift. The top of the list is genuinely elite; the middle is approximate, and the interface says so.",
+      ],
+    },
+    {
+      heading: "Caveats as a shipped artifact",
+      body: [
+        "Every metrics file carries a `caveat` field written against that specific model's weakness, and the interface renders it verbatim next to the number rather than in documentation nobody opens.",
+        "The sharpest one belongs to the best-looking result. College→NBA scores 0.91 AUC, but its negatives are random NCAA players rather than quality-matched prospects — so the model is mostly proving that NBA players outproduced the average college athlete, not that it can separate good players who make it from good players who don't. The caveat says exactly that. A 0.91 with no context would have been the most misleading number in the system.",
+        "Others are simply honest about scale: HS→D1 for men has only 65 negative examples against 705 positives, which makes its confidence intervals wide and its ceiling artificial until more D2/D3/NAIA rosters are scraped.",
+      ],
+    },
+    {
+      heading: "Serving it",
+      body: [
+        "Logistic-regression coefficients are exported to JSON so the calculator scores new inputs directly in the browser — no model server, no cold start, instant feedback as an athlete edits their profile. Gradient-boosted models stay server-side for batch scoring of full cohorts.",
+        "The class-2027 cohort pulled from the graph is 75,336 boys' basketball athletes, of whom 40 were committed at the time of the pull — which is a useful reminder of what the base rate actually looks like at the top of the funnel.",
+      ],
+    },
+  ],
+  tables: [
+    {
+      heading: "Random folds vs. forward-in-time holdout",
+      caption:
+        "Lacrosse, the sport where the temporal back-test has real measured numbers. The right column is what the product reports.",
+      columns: ["Model", "Random CV (GBM)", "Temporal (GBM)", "Drift"],
+      rows: [
+        ["HS → D1", "0.653", "0.609", "−4.4 pp"],
+        ["HS → Pro (men)", "0.869", "0.706", "−16.3 pp"],
+      ],
+      highlight: 2,
+      footnote:
+        "ROC-AUC. Train on class ≤ cutoff, test on every class after it — the split production actually faces.",
+    },
+    {
+      heading: "Calibration — out-of-fold ECE",
+      caption:
+        "Whether a displayed percentage means what it claims, measured across 10 probability buckets.",
+      columns: ["Model", "OOF ROC-AUC", "ECE", "Reading"],
+      rows: [
+        ["HS → D1 (GBM)", "0.651", "8.9 pp", "Top decile reliable, middle approximate"],
+        ["HS → Pro men (GBM)", "0.877", "0.6 pp", "Essentially honest at a 1.7% base rate"],
+        ["HS → Pro women (GBM)", "0.702", "0.2 pp", "Essentially honest at a 0.4% base rate"],
+      ],
+      highlight: 2,
+    },
+  ],
+  architecture: {
+    caption:
+      "One shape per sport: scrape and resolve, train and validate, then export for scoring.",
+    tiers: [
+      {
+        label: "Sources",
+        accent: "#4ce9d9",
+        blocks: [
+          {
+            title: "Performance data",
+            items: [
+              "MaxPreps HS box scores",
+              "Basketball-Reference NCAA + NBA",
+              "Sports-Reference cbb",
+              "SIDEARM D2/D3 rosters",
+            ],
+          },
+          {
+            title: "Recruiting overlays",
+            items: [
+              "247Sports rankings",
+              "On3 consensus",
+              "ESPN-100",
+              "McDonald's All-American",
+            ],
+          },
+          {
+            title: "Platform graph",
+            items: [
+              "Neo4j athlete + commitment nodes",
+              "Nightly recruiting export",
+              "Hudl engagement signals",
+              "Profile completeness",
+            ],
+          },
+        ],
+      },
+      {
+        label: "Modeling — eight sport pipelines",
+        accent: "#a488ff",
+        blocks: [
+          {
+            title: "Tasks",
+            items: [
+              "HS → D1 (men & women)",
+              "HS → Pro / NBA / WNBA",
+              "College → Pro",
+              "Career-longevity regression",
+            ],
+          },
+          {
+            title: "Pipeline",
+            items: [
+              "Median imputation (sparse HS stats)",
+              "StandardScaler for logreg",
+              "LogisticRegression + GBM, compared",
+              "Features shared trainer ↔ scorer",
+            ],
+          },
+          {
+            title: "Leakage control",
+            items: [
+              "Overlays predate the prediction moment",
+              "Games-played excluded (season-length artifact)",
+              "Era-asymmetric stats dropped",
+              "Exclusion list recorded in metrics JSON",
+            ],
+          },
+        ],
+      },
+      {
+        label: "Validation & serving",
+        accent: "#ff8a42",
+        blocks: [
+          {
+            title: "Measured",
+            items: [
+              "5-fold stratified CV",
+              "Forward-in-time temporal holdout",
+              "10-bucket out-of-fold ECE",
+              "Top-N hit tables",
+            ],
+          },
+          {
+            title: "Published",
+            items: [
+              "Per-model caveat field",
+              "Confusion matrices at 0.5",
+              "Metrics JSON committed",
+              "UI renders caveats verbatim",
+            ],
+          },
+          {
+            title: "Served",
+            items: [
+              "LogReg coefficients → JSON",
+              "Scored in-browser, no model server",
+              "GBM batch scoring server-side",
+              "Cohort projections into the app",
+            ],
+          },
+        ],
+      },
+    ],
   },
-];
+};
+
+export const projects: Project[] = [omniSearch, careerProjection];
 
 export function getProject(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);

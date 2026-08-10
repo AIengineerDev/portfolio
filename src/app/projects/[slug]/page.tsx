@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArchitectureDiagram } from "@/components/ArchitectureDiagram";
 import { DropoutChart } from "@/components/DropoutChart";
+import { ResultsTable } from "@/components/ResultsTable";
 import { Reveal } from "@/components/Reveal";
 import { getProject, projects } from "@/data/projects";
 
@@ -131,6 +132,12 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             <DropoutChart data={project.dropout} />
           </Reveal>
         )}
+
+        {project.tables?.map((t) => (
+          <Reveal key={t.heading} className="mt-16">
+            <ResultsTable data={t} />
+          </Reveal>
+        ))}
 
         {project.specs && (
           <Reveal className="mt-16">
