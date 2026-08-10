@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Hero } from "@/components/Hero";
 import { ProjectCard } from "@/components/ProjectCard";
 import { Reveal } from "@/components/Reveal";
-import { Timeline } from "@/components/Timeline";
+import { RoleList } from "@/components/RoleList";
 import {
   certifications,
   education,
@@ -51,7 +51,7 @@ export default function Home() {
           </Reveal>
 
           <div className="mt-16">
-            <Timeline roles={experience} />
+            <RoleList roles={experience} />
           </div>
         </div>
       </section>

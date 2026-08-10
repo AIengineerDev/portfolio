@@ -4,8 +4,8 @@ export type Role = {
   context?: string;
   period: string;
   current?: boolean;
-  /** Free-form prose. Each string is a paragraph, not a bullet. */
-  body: string[];
+  /** One line. The detail lives in the career summary above the list. */
+  blurb: string;
   tags: string[];
 };
 
@@ -30,8 +30,10 @@ export const profile = {
   linkedin: "https://linkedin.com/in/oleksii-lavrenin",
   summary: [
     "I design, train, and ship end-to-end GenAI systems — RAG pipelines, transformer NLP, agentic workflows, and knowledge-graph retrieval — and I take them all the way from prototype to production.",
-    "Most of my recent work has been as co-founder and CTO of uSport.ai, where I built a multimillion-node Neo4j and LLM platform from nothing, and as a UC Berkeley MIDS candidate researching multi-agent reinforcement learning for search-and-rescue robotics.",
-    "Five-plus years of AI/ML engineering sit on top of nine years leading QA automation. That combination is why I tend to own the entire lifecycle myself — data engineering, modeling, fine-tuning, MLOps — and why I care more about how a system degrades than how it scores on a good day.",
+    "Most of my recent work has been as co-founder and CTO of uSport.ai, which I built from an empty repository into a production AI recruiting platform matching student-athletes to NCAA coaches. It runs on GCP over a knowledge graph of 27.9 million nodes and 8.4 million athlete profiles. At its core is a multi-sport two-tower retrieval model in PyTorch — a BGE-large text encoder paired with a per-sport athlete tower, trained with bidirectional InfoNCE loss — where contrastive fine-tuning on hard negatives lifted forward MRR from 0.304 to 0.920, more than 3× the TF-IDF retrieval it replaced.",
+    "Around that sit gradient-boosted career-projection models, T5-generated match explanations so coaches see the reasoning rather than being told to trust it, and Claudie — a CrewAI agent running outreach and the scrape-enrich-ingest pipelines that feed Neo4j through MCP servers. The infrastructure is mine too: FastAPI microservices, Modal for GPU compute, Stripe billing, Playwright and Scrapy pipelines, and a React/TypeScript frontend. Solo, from raw data to production.",
+    "In parallel I'm a UC Berkeley MIDS candidate researching multi-agent reinforcement learning for search-and-rescue robotics. My capstone, OmniSearch, trains heterogeneous drone and ground-robot policies with HAPPO in a physically scaled wildfire simulator — reaching 80% mission success against 72% for the strongest scripted baseline, and holding near that ceiling through 70% communication dropout where the scripted strategies collapse.",
+    "Five-plus years of AI/ML engineering sit on top of nine years leading QA automation for cloud SaaS at scale — healthcare platforms, Disney applications, a loyalty platform serving three million users. That decade of thinking about how software fails, and how to catch it automatically, is why I tend to own the entire lifecycle myself and why I care more about how a system degrades than how it scores on a good day.",
   ],
 } as const;
 
@@ -41,12 +43,8 @@ export const experience: Role[] = [
     org: "uSport.ai",
     period: "Jan 2023 — Present",
     current: true,
-    body: [
-      "I built uSport.ai from an empty repository into a production AI recruiting platform that matches student-athletes to NCAA coaches. It runs on GCP — Cloud Run, Firestore, Firebase, Neo4j Aura — over a knowledge graph of 27.9 million nodes and 8.4 million athlete profiles.",
-      "The core of it is a multi-sport two-tower retrieval model in PyTorch: a BGE-large text encoder paired with a per-sport athlete tower, trained with bidirectional InfoNCE loss. Contrastive fine-tuning with hard negatives took forward MRR from 0.304 to 0.920 — more than a 3× improvement over the TF-IDF retrieval it replaced. Around it sit gradient-boosted career-projection models with temporal back-tests, and T5-generated explanations so a coach can see why the system recommended someone rather than just being told to trust it.",
-      "The platform runs its own agent, Claudie, built on CrewAI — it handles outreach, recommendation pipelines, and the scrape-enrich-ingest workflows that feed Neo4j through MCP servers. I also ran QLoRA fine-tuning experiments for athlete and coach entity normalization, and designed the NIL scoring pipeline against the Phyllo API and social metrics.",
-      "Everything underneath it is mine too: FastAPI microservices, Modal for GPU compute, Stripe billing, Playwright and Scrapy data pipelines, and a React/TypeScript frontend. Solo, from raw data to production.",
-    ],
+    blurb:
+      "Built and run an AI recruiting platform on GCP — 27.9M-node Neo4j graph, two-tower retrieval, CrewAI agents, full stack solo.",
     tags: ["Neo4j", "PyTorch", "CrewAI", "GCP", "FastAPI", "QLoRA", "React", "MCP"],
   },
   {
@@ -54,20 +52,16 @@ export const experience: Role[] = [
     org: "UC Berkeley, School of Information",
     period: "2026",
     current: true,
-    body: [
-      "OmniSearch, my capstone, asks whether learned coordination beats hand-written strategy when drones and ground robots have to search burning terrain together. I built the simulation side — a wildfire environment on VMAS scaled in real physical units, over cached USGS elevation and OpenStreetMap terrain — and trained heterogeneous policies with HAPPO against six scripted baselines.",
-      "The learned policies reached 80% mission success against 72% for the strongest baseline, but the result I care about is what happened under degraded communication: the scripted strategies lost roughly 14 points the moment comms became unreliable, while the trained swarm held near its ceiling through 70% dropout.",
-    ],
+    blurb:
+      "OmniSearch — heterogeneous multi-agent RL for wildfire search-and-rescue, trained with HAPPO in a physically scaled simulator.",
     tags: ["HAPPO", "VMAS", "PyTorch", "YOLOv8", "BenchMARL", "Python"],
   },
   {
     title: "SDET / QA Automation Engineer",
     org: "HHS Tech Group · Walt Disney World · BenefitHub · Kobie Marketing · Accusoft",
     period: "2012 — 2021",
-    body: [
-      "Nine years building end-to-end test automation frameworks in Python, Java, Selenium, RESTAssured, and JMeter for cloud SaaS at scale — healthcare platforms, Disney React applications, and a loyalty platform serving more than three million users.",
-      "I drove CI/CD adoption across GitLab and Jenkins and cut release cycles by about 20%. That decade of thinking about how software fails, and how to catch it automatically, is exactly what I now bring to MLOps pipeline design and AI system reliability.",
-    ],
+    blurb:
+      "Nine years of end-to-end test automation for cloud SaaS at scale, driving CI/CD adoption that cut release cycles ~20%.",
     tags: ["Python", "Java", "Selenium", "JMeter", "CI/CD", "Jenkins"],
   },
 ];
