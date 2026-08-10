@@ -4,7 +4,8 @@ export type Role = {
   context?: string;
   period: string;
   current?: boolean;
-  highlights: string[];
+  /** Free-form prose. Each string is a paragraph, not a bullet. */
+  body: string[];
   tags: string[];
 };
 
@@ -28,9 +29,9 @@ export const profile = {
   email: "oleksii.lavrenin@gmail.com",
   linkedin: "https://linkedin.com/in/oleksii-lavrenin",
   summary: [
-    "I design, train, and ship end-to-end GenAI systems — RAG pipelines, transformer NLP, agentic workflows, and knowledge-graph retrieval — from prototype to production.",
-    "At InRhythm I built LLM systems that improved enterprise defect detection by roughly 60% for clients including Fidelity and Wayfair. Independently, I architected uSport.ai: a multimillion-node Neo4j + LLM college athletic recruiting platform, built from the ground up.",
-    "Five-plus years of AI/ML engineering sit on top of nine years as an SDET and QA automation lead — which is why I tend to own the whole lifecycle solo, and why I care more about how a system degrades than how it scores on a good day.",
+    "I design, train, and ship end-to-end GenAI systems — RAG pipelines, transformer NLP, agentic workflows, and knowledge-graph retrieval — and I take them all the way from prototype to production.",
+    "Most of my recent work has been as co-founder and CTO of uSport.ai, where I built a multimillion-node Neo4j and LLM platform from nothing, and as a UC Berkeley MIDS candidate researching multi-agent reinforcement learning for search-and-rescue robotics.",
+    "Five-plus years of AI/ML engineering sit on top of nine years leading QA automation. That combination is why I tend to own the entire lifecycle myself — data engineering, modeling, fine-tuning, MLOps — and why I care more about how a system degrades than how it scores on a good day.",
   ],
 } as const;
 
@@ -40,39 +41,34 @@ export const experience: Role[] = [
     org: "uSport.ai",
     period: "Jan 2023 — Present",
     current: true,
-    highlights: [
-      "Architected and shipped an end-to-end AI recruiting platform on GCP (Cloud Run, Firestore, Firebase, Neo4j Aura) matching student-athletes to NCAA coaches across a 27.9M-node knowledge graph and 8.4M athlete profiles.",
-      "Designed and trained a multi-sport two-tower retrieval model — BGE-large text encoder plus a per-sport athlete tower, bidirectional InfoNCE loss — reaching 0.920 forward MRR and 0.365 reverse, a 3×+ improvement over TF-IDF retrieval.",
-      "Built career-projection models (gradient boosting, temporal back-tests) for basketball and lacrosse, with T5-generated explanations so coaches see why a recommendation was made.",
-      "Engineered Claudie, a CrewAI in-product agent running outreach, recommendation pipelines, and scrape-enrich-ingest workflows into Neo4j via MCP servers.",
-      "Ran QLoRA fine-tuning for athlete/coach entity normalization, and designed the NIL scoring pipeline against the Phyllo API and social metrics.",
-      "Owned the full MLOps stack solo — FastAPI microservices, Modal for GPU compute, Stripe billing, Playwright/Scrapy pipelines, React/TypeScript frontend.",
+    body: [
+      "I built uSport.ai from an empty repository into a production AI recruiting platform that matches student-athletes to NCAA coaches. It runs on GCP — Cloud Run, Firestore, Firebase, Neo4j Aura — over a knowledge graph of 27.9 million nodes and 8.4 million athlete profiles.",
+      "The core of it is a multi-sport two-tower retrieval model in PyTorch: a BGE-large text encoder paired with a per-sport athlete tower, trained with bidirectional InfoNCE loss. Contrastive fine-tuning with hard negatives took forward MRR from 0.304 to 0.920 — more than a 3× improvement over the TF-IDF retrieval it replaced. Around it sit gradient-boosted career-projection models with temporal back-tests, and T5-generated explanations so a coach can see why the system recommended someone rather than just being told to trust it.",
+      "The platform runs its own agent, Claudie, built on CrewAI — it handles outreach, recommendation pipelines, and the scrape-enrich-ingest workflows that feed Neo4j through MCP servers. I also ran QLoRA fine-tuning experiments for athlete and coach entity normalization, and designed the NIL scoring pipeline against the Phyllo API and social metrics.",
+      "Everything underneath it is mine too: FastAPI microservices, Modal for GPU compute, Stripe billing, Playwright and Scrapy data pipelines, and a React/TypeScript frontend. Solo, from raw data to production.",
     ],
-    tags: ["Neo4j", "PyTorch", "CrewAI", "GCP", "FastAPI", "QLoRA", "React"],
+    tags: ["Neo4j", "PyTorch", "CrewAI", "GCP", "FastAPI", "QLoRA", "React", "MCP"],
   },
   {
-    title: "AI Engineer",
-    org: "InRhythm",
-    context: "Clients: Fidelity, Wayfair, Admina Health",
-    period: "Mar 2021 — Present",
+    title: "MIDS Capstone Researcher",
+    org: "UC Berkeley, School of Information",
+    period: "2026",
     current: true,
-    highlights: [
-      "Built transformer-based RAG pipelines (BERT/T5 + vector retrieval) for enterprise defect detection, improving prediction accuracy ~60% over prior rule-based systems across large financial and e-commerce codebases.",
-      "Deployed LLM automation that auto-resolved recurring production issues, cutting manual triage effort roughly 20× across client systems.",
-      "Engineered NLP anomaly detection and real-time Elasticsearch analytics dashboards, sharply reducing time-to-insight for client analytics teams.",
-      "Led a 20-person cross-functional team and standardized MLOps workflows — MLflow, GitHub Actions, Jenkins, Docker — for training, versioning, and deployment.",
+    body: [
+      "OmniSearch, my capstone, asks whether learned coordination beats hand-written strategy when drones and ground robots have to search burning terrain together. I built the simulation side — a wildfire environment on VMAS scaled in real physical units, over cached USGS elevation and OpenStreetMap terrain — and trained heterogeneous policies with HAPPO against six scripted baselines.",
+      "The learned policies reached 80% mission success against 72% for the strongest baseline, but the result I care about is what happened under degraded communication: the scripted strategies lost roughly 14 points the moment comms became unreliable, while the trained swarm held near its ceiling through 70% dropout.",
     ],
-    tags: ["BERT", "T5", "RAG", "Elasticsearch", "MLflow", "Docker"],
+    tags: ["HAPPO", "VMAS", "PyTorch", "YOLOv8", "BenchMARL", "Python"],
   },
   {
     title: "SDET / QA Automation Engineer",
     org: "HHS Tech Group · Walt Disney World · BenefitHub · Kobie Marketing · Accusoft",
     period: "2012 — 2021",
-    highlights: [
-      "Nine years building end-to-end test automation frameworks (Python, Java, Selenium, RESTAssured, JMeter) for cloud SaaS at scale — healthcare platforms, Disney React apps, and a loyalty platform serving 3M+ users.",
-      "Drove CI/CD adoption across GitLab and Jenkins, cutting release cycles ~20%. That automation background is what now shapes how I design MLOps pipelines and reason about AI system reliability.",
+    body: [
+      "Nine years building end-to-end test automation frameworks in Python, Java, Selenium, RESTAssured, and JMeter for cloud SaaS at scale — healthcare platforms, Disney React applications, and a loyalty platform serving more than three million users.",
+      "I drove CI/CD adoption across GitLab and Jenkins and cut release cycles by about 20%. That decade of thinking about how software fails, and how to catch it automatically, is exactly what I now bring to MLOps pipeline design and AI system reliability.",
     ],
-    tags: ["Python", "Java", "Selenium", "JMeter", "CI/CD"],
+    tags: ["Python", "Java", "Selenium", "JMeter", "CI/CD", "Jenkins"],
   },
 ];
 
@@ -180,5 +176,5 @@ export const stats = [
   { value: "14+", label: "years shipping software" },
   { value: "5+", label: "years in AI/ML" },
   { value: "27.9M", label: "node knowledge graph in production" },
-  { value: "~60%", label: "defect-detection accuracy gain" },
+  { value: "0.920", label: "retrieval MRR, 3× over baseline" },
 ];

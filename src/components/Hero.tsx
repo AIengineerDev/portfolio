@@ -22,7 +22,7 @@ export function Hero() {
         <motion.p
           custom={0}
           {...anim}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-ink-600/70 bg-white/[0.03] px-3.5 py-1.5 font-mono text-xs tracking-wide text-mist-400"
+          className="mb-6 inline-flex items-center gap-2 rounded-full border border-ink-600 bg-white/[0.06] px-3.5 py-1.5 font-mono text-xs tracking-wide text-mist-400"
         >
           <span className="h-1.5 w-1.5 rounded-full bg-flux-500" />
           AI / ML engineer · multi-agent systems
@@ -66,7 +66,7 @@ export function Hero() {
         initial={reduced ? undefined : { opacity: 0 }}
         animate={reduced ? undefined : { opacity: 1 }}
         transition={{ delay: 1.2, duration: 1 }}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.3em] text-mist-400/60"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 font-mono text-[10px] uppercase tracking-[0.3em] text-mist-400"
       >
         scroll
       </motion.div>

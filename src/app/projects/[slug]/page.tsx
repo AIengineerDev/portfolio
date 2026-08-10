@@ -55,7 +55,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
               {project.domain}
             </span>
             <span>{project.role}</span>
-            <span className="text-mist-400/50">/</span>
+            <span className="text-mist-400">/</span>
             <span>{project.year}</span>
           </div>
 
@@ -92,9 +92,9 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
         </Reveal>
 
         <Reveal className="mt-14">
-          <div className="grid gap-px overflow-hidden rounded-2xl border border-ink-600/70 bg-ink-600/40 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-px overflow-hidden rounded-2xl border border-ink-600 bg-ink-600 sm:grid-cols-2 lg:grid-cols-4">
             {project.metrics.map((m) => (
-              <div key={m.label} className="bg-ink-900/80 p-6">
+              <div key={m.label} className="bg-ink-800 p-6">
                 <div className="text-3xl font-semibold tabular-nums" style={{ color: to }}>
                   {m.value}
                 </div>
@@ -137,9 +137,9 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             <h2 className="text-2xl font-semibold tracking-tight text-mist-200">
               Evaluation setup
             </h2>
-            <dl className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-ink-600/70 bg-ink-600/40 sm:grid-cols-2">
+            <dl className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-ink-600 bg-ink-600 sm:grid-cols-2">
               {project.specs.map((row) => (
-                <div key={row.label} className="bg-ink-900/80 px-6 py-4">
+                <div key={row.label} className="bg-ink-800 px-6 py-4">
                   <dt className="text-xs uppercase tracking-wider text-mist-400">{row.label}</dt>
                   <dd className="mt-1 text-sm text-mist-200">{row.value}</dd>
                 </div>
@@ -172,7 +172,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
         ))}
 
         <Reveal className="mt-20">
-          <div className="grid gap-10 border-t border-ink-700/60 pt-10 sm:grid-cols-2">
+          <div className="grid gap-10 border-t border-ink-700 pt-10 sm:grid-cols-2">
             <div>
               <h3 className="font-mono text-xs uppercase tracking-[0.22em] text-mist-400">
                 Stack

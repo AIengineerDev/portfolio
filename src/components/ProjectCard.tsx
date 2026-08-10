@@ -63,7 +63,7 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
         />
 
         {project.cover && (
-          <div className="relative aspect-[16/9] overflow-hidden border-b border-ink-600/60">
+          <div className="relative aspect-[16/9] overflow-hidden border-b border-ink-600">
             <Image
               src={project.cover.src}
               alt={project.cover.alt}
@@ -95,7 +95,7 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
               {statusLabel[project.status]}
             </span>
             <span>{project.domain}</span>
-            <span className="text-mist-400/50">/</span>
+            <span className="text-mist-400">/</span>
             <span>{project.year}</span>
           </div>
 

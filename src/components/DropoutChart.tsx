@@ -54,7 +54,7 @@ export function DropoutChart({ data }: { data: DropoutPoint[] }) {
                 x2={W - PAD.right}
                 y1={y(t)}
                 y2={y(t)}
-                stroke="rgba(139,147,176,0.14)"
+                stroke="rgba(170,178,205,0.22)"
                 strokeWidth={1}
               />
               <text
@@ -83,7 +83,7 @@ export function DropoutChart({ data }: { data: DropoutPoint[] }) {
             x={PAD.left + (W - PAD.left - PAD.right) / 2}
             y={H - 6}
             textAnchor="middle"
-            className="fill-mist-400/70 text-[11px]"
+            className="fill-mist-400 text-[11px]"
           >
             communication dropout
           </text>
@@ -112,7 +112,7 @@ export function DropoutChart({ data }: { data: DropoutPoint[] }) {
                     cx={x(d.dropout)}
                     cy={y(d[s.key])}
                     r={s.key === "happo" ? 4 : 3}
-                    fill="#0a0c14"
+                    fill="#0e1120"
                     stroke={s.color}
                     strokeWidth={2}
                   />

@@ -3,7 +3,7 @@ import { Reveal } from "@/components/Reveal";
 
 export function Timeline({ roles }: { roles: Role[] }) {
   return (
-    <ol className="relative flex flex-col gap-12 border-l border-ink-600/60 pl-7 sm:pl-9">
+    <ol className="relative flex flex-col gap-12 border-l border-ink-600 pl-7 sm:pl-9">
       {roles.map((role, i) => (
         <li key={`${role.org}-${role.period}`} className="relative">
           {/* Node on the rail */}
@@ -35,33 +35,29 @@ export function Timeline({ roles }: { roles: Role[] }) {
               )}
             </div>
 
-            <p className="mt-1 text-sm text-mist-300">
+            <p className="mt-1.5 text-base font-medium text-mist-200">
               {role.org}
               {role.context && (
-                <span className="text-mist-400"> · {role.context}</span>
+                <span className="font-normal text-mist-400"> · {role.context}</span>
               )}
             </p>
-            <p className="mt-0.5 font-mono text-xs tracking-wide text-mist-400">
+            <p className="mt-1 font-mono text-xs tracking-wide text-mist-400">
               {role.period}
             </p>
 
-            <ul className="mt-4 flex flex-col gap-2.5">
-              {role.highlights.map((h) => (
-                <li key={h} className="flex gap-3 text-sm leading-relaxed text-mist-400">
-                  <span
-                    className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-flux-500/70"
-                    aria-hidden
-                  />
-                  <span className="text-pretty">{h}</span>
-                </li>
+            <div className="mt-5 flex flex-col gap-4">
+              {role.body.map((p) => (
+                <p key={p} className="text-pretty leading-relaxed text-mist-300">
+                  {p}
+                </p>
               ))}
-            </ul>
+            </div>
 
-            <div className="mt-4 flex flex-wrap gap-1.5">
+            <div className="mt-5 flex flex-wrap gap-1.5">
               {role.tags.map((t) => (
                 <span
                   key={t}
-                  className="rounded-full border border-ink-600/80 px-2.5 py-0.5 text-[11px] text-mist-400"
+                  className="rounded-full border border-ink-600 bg-white/[0.04] px-2.5 py-1 text-[11px] text-mist-300"
                 >
                   {t}
                 </span>

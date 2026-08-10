@@ -58,7 +58,7 @@ export function ArchitectureDiagram({ data }: { data: Architecture }) {
                 {tier.blocks.map((b) => (
                   <div
                     key={b.title}
-                    className="rounded-xl border border-ink-600/50 bg-white/[0.02] p-4"
+                    className="rounded-xl border border-ink-600 bg-white/[0.05] p-4"
                   >
                     <div className="text-sm font-semibold text-mist-200">{b.title}</div>
                     <ul className="mt-2.5 flex flex-col gap-1.5">
