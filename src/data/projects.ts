@@ -716,7 +716,138 @@ const onpace: Project = {
   ],
 };
 
-export const projects: Project[] = [omniSearch, careerProjection, onpace];
+const twoTowers: Project = {
+  slug: "two-tower-retrieval",
+  title: "Two-Tower Retrieval",
+  tagline:
+    "Bidirectional coach–athlete matching for college swimming recruiting, built on a knowledge graph and contrastive fine-tuning.",
+  year: "2026",
+  role: "UC Berkeley DATASCI 266 — NLP with Deep Learning",
+  status: "research",
+  domain: "NLP · Dense Retrieval",
+  accent: ["#4ce9d9", "#a488ff"],
+  summary:
+    "College recruiting is a matching problem disguised as an inbox problem. Athletes email hundreds of coaches who run programs that do not fit them; coaches read thousands of profiles to find a handful of viable recruits. This project encodes both sides into one embedding space so the search runs in either direction — and tests what actually drives retrieval quality: contrastive fine-tuning with hard negatives, or LLM normalization of the inputs.",
+  stack: [
+    "Python",
+    "PyTorch",
+    "sentence-transformers",
+    "BGE-large-en-v1.5",
+    "T5-small",
+    "Neo4j",
+    "scikit-learn",
+    "Hugging Face",
+    "Jupyter",
+  ],
+  metrics: [
+    {
+      label: "Forward MRR",
+      value: "0.909",
+      detail: "up from 0.304 pre-trained — swimmer → coach",
+    },
+    { label: "Top-1 hit rate", value: "83.6%", detail: "184 of 220 held-out swimmers, perfect MRR" },
+    { label: "Reverse MRR gain", value: "4.5×", detail: "0.045 → 0.202 — the harder direction" },
+    { label: "Knowledge graph", value: "150K", detail: "swimmer profiles, 19,369 coaches, 295 benchmarks" },
+  ],
+  specsHeading: "Experimental setup",
+  specs: [
+    { label: "Encoder", value: "BAAI/bge-large-en-v1.5 — 1024-d, 512 tokens" },
+    { label: "Loss", value: "MultipleNegativesRankingLoss, 3 epochs" },
+    { label: "Training triplets", value: "1,196, built from train swimmers only" },
+    { label: "Split", value: "70/30 by swimmer — 511 train / 220 test, disjoint" },
+    { label: "Ground truth", value: "22,974 benchmark-derived pairs, 731 swimmers × 72 coaches" },
+    { label: "Explanations", value: "T5-small, 6 training pairs, 2 held out" },
+  ],
+  sections: [
+    {
+      heading: "Why embeddings alone fail here",
+      body: [
+        "A swimmer profile reads “100 free 51.2, looking for D1.” A general-purpose NLP system does not know that is a 100-yard freestyle in 51.2 seconds, or that it implies a competitive tier. The vocabulary is compressed, numeric, and domain-specific in a way that pre-trained sentence embeddings simply do not encode.",
+        "Worse, the relationships that decide a match — conference affiliation, division eligibility, event-specific time standards per school — are structural. They live in a graph, not in prose, and no amount of text similarity recovers them.",
+        "So the system draws on a Neo4j subgraph from the uSport.ai platform: 150,000 synthetic swimmer profiles, 19,369 coaches, and 295 per-school event benchmarks across 39 schools and 28 events. A universal event normalizer reconciles the formats — “200 Butterfly” and “200 fly” resolve to the same event — and times are parsed to seconds so they can be compared numerically.",
+      ],
+    },
+    {
+      heading: "Ground truth from benchmarks, not from clicks",
+      body: [
+        "There is no click log for recruiting, so positives are constructed from competitive reality: a swimmer matches a coach if their best time in any event falls inside that school's competitive range — at or below the school's slowest benchmark, or within 5% of the median. That yields 22,974 positive pairs across 731 swimmers and 72 coaches.",
+        "The same benchmarks generate the hard negatives, which is where the signal is. A random negative is a coach at a school that swims different events entirely — trivially separable. A hard negative is a coach whose school swims exactly the swimmer's events, but where the swimmer is not competitive. Same vocabulary, same domain, wrong answer.",
+        "Splitting is by swimmer, 70/30, with a fixed seed: 511 train and 220 test, fully disjoint. Triplets come only from train swimmers, every metric is computed only on test swimmers, and no swimmer appears on both sides.",
+      ],
+    },
+    {
+      heading: "What the experiment was actually testing",
+      body: [
+        "Both towers share one encoder — BGE-large-en-v1.5, chosen off the MTEB leaderboard for top-10 English retrieval at a workable 1024 dimensions. One tower serializes the swimmer; the other serializes the coach enriched with their school's benchmarks. Cosine similarity at inference gives a ranked list in either direction.",
+        "The experimental question was whether a decoder LLM normalizing both sides into semi-structured JSON before embedding beats embedding the text directly. This is a deliberate departure from HyDE and Query2Doc, which expand the query side; here both sides get normalized into one consistent schema.",
+        "The answer: normalization helps, but it is not what matters. Contrastive fine-tuning lifted forward MRR from 0.304 to 0.883 — a 2.9× gain. Normalization on top of that added 0.026, reaching 0.909, with bootstrap confidence intervals that overlap the fine-tuned baseline. Trending, not conclusive. The fine-tuning is the whole story; the normalization is a rounding error dressed as a treatment.",
+      ],
+    },
+    {
+      heading: "The direction that did not work",
+      body: [
+        "Reverse retrieval — coach searching for swimmers — improved 4.5×, from 0.045 to 0.202 MRR, and 0.202 is still bad. Pre-trained P@1 was exactly zero.",
+        "The reason is informational, not architectural: a coach profile is a name, a title, a school, and a team gender. There is very little distinctive text to embed. A swimmer profile carries events, times, a power index, and a bio. Symmetric architecture, deeply asymmetric information — and no amount of contrastive training manufactures signal that was never in the input.",
+        "The one place normalization earned its keep was here: at P@10 the treatment reached 0.106 against the baseline's 0.085, suggesting cleaner representations help surface relevant swimmers further down the ranking even when the top of it stays noisy.",
+      ],
+    },
+    {
+      heading: "Where it breaks",
+      body: [
+        "Of 220 test swimmers, 184 — 83.6% — retrieve a correct coach at rank one. The failures are informative: swimmers with only a single relevant coach in the entire candidate set, and swimmers from underrepresented countries such as Estonia and Luxembourg, whose profiles sit outside the US-centric training distribution.",
+        "Negative-pair rejection is honest about its own weakness. Fine-tuning widened the similarity gap between positives and negatives 5.7× — 0.015 to 0.086 — but AUC-ROC only reaches 0.633–0.666. That ceiling reflects the coarseness of the negative signal: two swimming profiles with zero event overlap still share a great deal of swimming language.",
+        "The T5 explanation generator is labelled a proof of concept because it is one. Six hand-written training pairs, two held out, ROUGE around 0.53 on n=2 — illustrative and nothing more. It produces fluent, correctly grounded output (“Carleton College develops distance swimmers… your sprint freestyle times fit their team needs”) and it occasionally conflates stroke specializations. A production version needs hundreds of procedurally generated examples.",
+      ],
+    },
+  ],
+  tables: [
+    {
+      heading: "Forward retrieval — swimmer → coach",
+      caption: "Held-out test set of 220 swimmers, disjoint from the 511 used for training.",
+      columns: ["Approach", "P@1", "P@10", "MRR", "nDCG@10"],
+      rows: [
+        ["Baseline (pre-trained)", "0.173", "0.110", "0.304", "0.120"],
+        ["Baseline (fine-tuned)", "0.836", "0.605", "0.883", "0.664"],
+        ["Treatment (LLM-norm)", "0.873", "0.596", "0.909", "0.659"],
+      ],
+      highlight: 3,
+      footnote:
+        "Bootstrap 95% CI: treatment [0.872–0.940] overlaps fine-tuned baseline [0.846–0.918] — a trend, not a conclusive win.",
+    },
+    {
+      heading: "Reverse retrieval — coach → swimmer",
+      caption:
+        "The same models, 72 held-out coaches. Everything improves; nothing gets good. Coach profiles carry too little distinctive text.",
+      columns: ["Approach", "P@1", "P@10", "MRR"],
+      rows: [
+        ["Baseline (pre-trained)", "0.000", "0.007", "0.045"],
+        ["Baseline (fine-tuned)", "0.083", "0.085", "0.202"],
+        ["Treatment (LLM-norm)", "0.069", "0.106", "0.203"],
+      ],
+      highlight: 3,
+    },
+    {
+      heading: "Negative-pair rejection",
+      caption:
+        "Can the model tell a genuine mismatch from a match? Separation improves 5.7×, but the ceiling is low.",
+      columns: ["Approach", "Positive sim", "Negative sim", "Separation", "AUC-ROC"],
+      rows: [
+        ["Pre-trained", "0.552", "0.537", "0.015", "0.633"],
+        ["Fine-tuned", "0.458", "0.371", "0.086", "0.654"],
+        ["Treatment", "0.470", "0.384", "0.086", "0.666"],
+      ],
+      highlight: 3,
+    },
+  ],
+  links: [
+    {
+      label: "Source and notebook on GitHub",
+      href: "https://github.com/olavrenin-data-scientist/coach_athlete_two_towers",
+    },
+  ],
+};
+
+export const projects: Project[] = [omniSearch, twoTowers, careerProjection, onpace];
 
 export function getProject(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
