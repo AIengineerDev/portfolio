@@ -28,6 +28,18 @@ export type Gallery = {
   caption: string;
 };
 
+/** One horizontal tier of the system-architecture diagram. */
+export type ArchTier = {
+  label: string;
+  accent: string;
+  blocks: { title: string; items: string[] }[];
+};
+
+export type Architecture = {
+  caption: string;
+  tiers: ArchTier[];
+};
+
 export type Project = {
   slug: string;
   title: string;
@@ -44,6 +56,7 @@ export type Project = {
   sections: Section[];
   specs?: SpecRow[];
   dropout?: DropoutPoint[];
+  architecture?: Architecture;
   gallery?: Gallery[];
   team?: string[];
   links?: { label: string; href: string }[];
@@ -73,12 +86,15 @@ export const projects: Project[] = [
       "PyTorch",
       "VMAS",
       "HARL / HAPPO",
+      "BenchMARL",
       "MAPPO",
       "IPPO",
+      "DAgger",
       "YOLOv8",
       "OpenCV",
-      "USGS Terrain",
+      "USGS 3DEP",
       "OpenStreetMap",
+      "LANDFIRE",
       "Three.js",
     ],
     team: ["Ann-Kathrin Schuetz", "Jefferson-Stanley Jules", "Oleksii Lavrenin"],
@@ -167,14 +183,78 @@ export const projects: Project[] = [
         ],
       },
     ],
-    gallery: [
-      {
-        src: "/projects/omnisearch-architecture.png",
-        alt: "OmniSearch system architecture diagram",
-        caption:
-          "System architecture: terrain and fire layers feed the VMAS scenario, which feeds perception, policies, and the evaluation harness.",
-      },
-    ],
+    architecture: {
+      caption:
+        "Real terrain feeds a 12,600-line MARL simulator; rollouts are scored through a calibrated perception model.",
+      tiers: [
+        {
+          label: "Data sources",
+          accent: "#35e0d0",
+          blocks: [
+            { title: "USGS 3DEP", items: ["elevation", "slope", "altitude"] },
+            { title: "OpenStreetMap", items: ["roads", "water", "buildings"] },
+            { title: "LANDFIRE", items: ["fuel model", "canopy cover"] },
+          ],
+        },
+        {
+          label: "Simulation platform — VMAS WildfireSearchScenario",
+          accent: "#ff7a2f",
+          blocks: [
+            {
+              title: "Simulation core",
+              items: [
+                "Cellular-automata fire + smoke",
+                "6 land-cover types",
+                "128² / 256² grid",
+                "1 km², calibrated m/s, 2 s step",
+                "3–4 UAVs (10 m/s, 20–50 m AGL)",
+                "2–3 UGVs (1.6 m/s, terrain cost)",
+              ],
+            },
+            {
+              title: "Coordination (MARL)",
+              items: [
+                "HAPPO (HARL) — primary",
+                "BC warm-start + RL fine-tune",
+                "DAgger imitation learning",
+                "MAPPO / IPPO (BenchMARL)",
+                "6 hand-coded baselines",
+                "Centralized critic, dec. execution",
+              ],
+            },
+            {
+              title: "Perception model",
+              items: [
+                "Probabilistic detection proxy",
+                "Altitude-dependent footprint",
+                "Smoke attenuation (Beer–Lambert)",
+                "RGB + thermal fusion",
+                "Per-agent comms dropout (0–80%)",
+                "Decoy false-positive landmarks",
+              ],
+            },
+          ],
+        },
+        {
+          label: "Evaluation & output",
+          accent: "#8b6bff",
+          blocks: [
+            {
+              title: "6 mission metrics",
+              items: ["recall", "verification time", "FP trips", "hazard", "travel cost", "DRR"],
+            },
+            {
+              title: "Experiment harness",
+              items: ["3 algos × 4 dropouts × N seeds", "Mann–Whitney U", "510-run EDA"],
+            },
+            {
+              title: "Three.js 3D viewer",
+              items: ["trajectory replay", "per-agent comms", "strategy comparison"],
+            },
+          ],
+        },
+      ],
+    },
     links: [
       {
         label: "UC Berkeley I School project page",

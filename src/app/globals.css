@@ -16,6 +16,9 @@
   --color-flux-400: #6ff0e4;
   --color-violet-500: #8b6bff;
 
+  /* Below this the full name + 3 nav links stop fitting on one row. */
+  --breakpoint-xs: 27rem;
+
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Menlo", monospace;
 

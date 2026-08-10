@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { ArchitectureDiagram } from "@/components/ArchitectureDiagram";
 import { DropoutChart } from "@/components/DropoutChart";
 import { Reveal } from "@/components/Reveal";
 import { getProject, projects } from "@/data/projects";
@@ -144,6 +145,12 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 </div>
               ))}
             </dl>
+          </Reveal>
+        )}
+
+        {project.architecture && (
+          <Reveal className="mt-16">
+            <ArchitectureDiagram data={project.architecture} />
           </Reveal>
         )}
 

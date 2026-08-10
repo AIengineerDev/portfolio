@@ -36,15 +36,16 @@ export function Nav() {
             <span className="absolute inset-0 animate-pulse-ring rounded-full bg-ember-500" />
             <span className="relative h-2.5 w-2.5 rounded-full bg-ember-500" />
           </span>
-          Oleksii&nbsp;Lavrenin
+          <span className="hidden xs:inline">Oleksii&nbsp;Lavrenin</span>
+          <span className="xs:hidden">OL</span>
         </Link>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5 sm:gap-1">
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="rounded-full px-3.5 py-1.5 text-sm text-mist-400 transition-colors hover:bg-white/5 hover:text-mist-200"
+              className="rounded-full px-2.5 py-1.5 text-sm text-mist-400 transition-colors hover:bg-white/5 hover:text-mist-200 sm:px-3.5"
             >
               {l.label}
             </Link>
