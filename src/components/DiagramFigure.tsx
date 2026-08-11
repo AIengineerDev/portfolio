@@ -114,7 +114,7 @@ export function DiagramFigure({ data }: { data: Gallery }) {
         </button>
       </div>
 
-      <figcaption className="mt-3 text-sm leading-relaxed text-mist-400">
+      <figcaption className="mt-3 text-base leading-relaxed text-mist-400">
         {data.caption}
       </figcaption>
 

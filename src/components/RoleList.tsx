@@ -31,13 +31,13 @@ export function RoleList({ roles }: { roles: Role[] }) {
               )}
             </p>
 
-            <p className="mt-3 text-pretty leading-relaxed text-mist-400">{role.blurb}</p>
+            <p className="mt-3 text-pretty text-lg leading-relaxed text-mist-300">{role.blurb}</p>
 
             <div className="mt-5 flex flex-wrap gap-1.5">
               {role.tags.map((t) => (
                 <span
                   key={t}
-                  className="rounded-full border border-ink-600 bg-white/[0.04] px-2.5 py-1 text-[11px] text-mist-300"
+                  className="rounded-full border border-ink-600 bg-white/[0.04] px-2.5 py-1 text-xs text-mist-300"
                 >
                   {t}
                 </span>

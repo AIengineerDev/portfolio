@@ -15,7 +15,7 @@ export function ArchitectureDiagram({ data }: { data: Architecture }) {
       <h2 className="text-2xl font-semibold tracking-tight text-mist-200 sm:text-3xl">
         System architecture
       </h2>
-      <p className="mt-3 text-sm leading-relaxed text-mist-400">{data.caption}</p>
+      <p className="mt-3 text-base leading-relaxed text-mist-400">{data.caption}</p>
 
       <div className="mt-8 flex flex-col items-stretch">
         {data.tiers.map((tier, ti) => (
@@ -60,12 +60,12 @@ export function ArchitectureDiagram({ data }: { data: Architecture }) {
                     key={b.title}
                     className="rounded-xl border border-ink-600 bg-white/[0.05] p-4"
                   >
-                    <div className="text-sm font-semibold text-mist-200">{b.title}</div>
+                    <div className="text-base font-semibold text-mist-200">{b.title}</div>
                     <ul className="mt-2.5 flex flex-col gap-1.5">
                       {b.items.map((it) => (
                         <li
                           key={it}
-                          className="flex gap-2 text-xs leading-snug text-mist-400"
+                          className="flex gap-2 text-sm leading-snug text-mist-400"
                         >
                           <span
                             className="mt-[6px] h-1 w-1 shrink-0 rounded-full"

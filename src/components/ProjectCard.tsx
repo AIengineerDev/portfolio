@@ -111,7 +111,7 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
           <h3 className="text-3xl font-semibold tracking-tight text-mist-200 sm:text-4xl">
             {project.title}
           </h3>
-          <p className="mt-3 max-w-2xl text-pretty leading-relaxed text-mist-400">
+          <p className="mt-3 max-w-2xl text-pretty text-lg leading-relaxed text-mist-300">
             {project.tagline}
           </p>
 
@@ -124,7 +124,7 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
                 >
                   {m.value}
                 </div>
-                <div className="mt-0.5 text-xs leading-snug text-mist-400">{m.label}</div>
+                <div className="mt-0.5 text-sm leading-snug text-mist-400">{m.label}</div>
               </div>
             ))}
           </div>

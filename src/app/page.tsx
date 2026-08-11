@@ -44,7 +44,7 @@ export default function Home() {
                   <div className="text-3xl font-semibold tabular-nums text-flux-400">
                     {s.value}
                   </div>
-                  <div className="mt-1.5 text-sm leading-snug text-mist-400">{s.label}</div>
+                  <div className="mt-1.5 text-base leading-snug text-mist-400">{s.label}</div>
                 </div>
               ))}
             </div>
@@ -78,9 +78,9 @@ export default function Home() {
                       {e.period}
                     </span>
                   </div>
-                  <p className="mt-1.5 text-base text-mist-300">{e.school}</p>
+                  <p className="mt-1.5 text-lg text-mist-300">{e.school}</p>
                   {e.detail && (
-                    <p className="mt-3 leading-relaxed text-mist-400">{e.detail}</p>
+                    <p className="mt-3 text-lg leading-relaxed text-mist-400">{e.detail}</p>
                   )}
                 </div>
               </Reveal>
@@ -94,7 +94,7 @@ export default function Home() {
               </h3>
               <ul className="mt-5 grid gap-2.5 sm:grid-cols-2">
                 {certifications.map((c) => (
-                  <li key={c} className="flex gap-3 text-sm text-mist-300">
+                  <li key={c} className="flex gap-3 text-base text-mist-300">
                     <span
                       className="mt-[9px] h-1.5 w-1.5 shrink-0 rounded-full bg-violet-500"
                       aria-hidden
@@ -129,7 +129,7 @@ export default function Home() {
                     {group.items.map((it) => (
                       <span
                         key={it}
-                        className="rounded-full border border-ink-600 bg-white/[0.04] px-3 py-1.5 text-xs text-mist-300"
+                        className="rounded-full border border-ink-600 bg-white/[0.04] px-3 py-1.5 text-sm text-mist-300"
                       >
                         {it}
                       </span>
@@ -155,7 +155,7 @@ export default function Home() {
                   Projects
                 </h2>
               </div>
-              <p className="hidden max-w-xs text-sm leading-relaxed text-mist-400 sm:block">
+              <p className="hidden max-w-xs text-base leading-relaxed text-mist-400 sm:block">
                 Each case study covers the problem, the approach, and what the numbers actually
                 showed — including where they did not hold.
               </p>

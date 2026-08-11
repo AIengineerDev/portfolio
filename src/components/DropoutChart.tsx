@@ -32,10 +32,10 @@ export function DropoutChart({ data }: { data: DropoutPoint[] }) {
 
   return (
     <figure className="surface rounded-3xl p-5 sm:p-7">
-      <figcaption className="mb-1 text-sm font-medium text-mist-200">
+      <figcaption className="mb-1 text-base font-medium text-mist-200">
         Mission success under communication dropout
       </figcaption>
-      <p className="mb-5 text-xs text-mist-400">
+      <p className="mb-5 text-sm text-mist-400">
         Full-confirmation success rate, 100 held-out seeds per point. 4 UAVs · 3 UGVs · 1 km²
         Malibu Creek terrain.
       </p>
@@ -125,7 +125,7 @@ export function DropoutChart({ data }: { data: DropoutPoint[] }) {
 
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
         {SERIES.map((s) => (
-          <div key={s.key} className="flex items-center gap-2 text-xs text-mist-300">
+          <div key={s.key} className="flex items-center gap-2 text-sm text-mist-300">
             <span
               className="h-0.5 w-5 rounded-full"
               style={{ background: s.color }}

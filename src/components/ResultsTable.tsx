@@ -7,11 +7,11 @@ export function ResultsTable({ data }: { data: ResultsTableData }) {
         {data.heading}
       </h2>
       {data.caption && (
-        <p className="mt-3 text-sm leading-relaxed text-mist-400">{data.caption}</p>
+        <p className="mt-3 text-base leading-relaxed text-mist-400">{data.caption}</p>
       )}
 
       <div className="mt-6 overflow-x-auto rounded-2xl border border-ink-600">
-        <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+        <table className="w-full min-w-[520px] border-collapse text-left text-base">
           <thead>
             <tr className="bg-ink-800">
               {data.columns.map((c, i) => (
@@ -51,7 +51,7 @@ export function ResultsTable({ data }: { data: ResultsTableData }) {
       </div>
 
       {data.footnote && (
-        <figcaption className="mt-3 text-xs leading-relaxed text-mist-400">
+        <figcaption className="mt-3 text-sm leading-relaxed text-mist-400">
           {data.footnote}
         </figcaption>
       )}

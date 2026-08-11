@@ -86,9 +86,9 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 <div className="text-3xl font-semibold tabular-nums" style={{ color: to }}>
                   {m.value}
                 </div>
-                <div className="mt-1.5 text-sm font-medium text-mist-200">{m.label}</div>
+                <div className="mt-1.5 text-base font-medium text-mist-200">{m.label}</div>
                 {m.detail && (
-                  <div className="mt-1 text-xs leading-snug text-mist-400">{m.detail}</div>
+                  <div className="mt-1 text-sm leading-snug text-mist-400">{m.detail}</div>
                 )}
               </div>
             ))}
@@ -104,7 +104,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 </h2>
                 <div className="mt-5 flex flex-col gap-4">
                   {s.body.map((p, j) => (
-                    <p key={j} className="text-pretty leading-relaxed text-mist-400">
+                    <p key={j} className="text-pretty text-lg leading-relaxed text-mist-300">
                       {p}
                     </p>
                   ))}
@@ -140,8 +140,8 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             <dl className="mt-6 grid gap-px overflow-hidden rounded-2xl border border-ink-600 bg-ink-600 sm:grid-cols-2">
               {project.specs.map((row) => (
                 <div key={row.label} className="bg-ink-800 px-6 py-4">
-                  <dt className="text-xs uppercase tracking-wider text-mist-400">{row.label}</dt>
-                  <dd className="mt-1 text-sm text-mist-200">{row.value}</dd>
+                  <dt className="text-[11px] uppercase tracking-wider text-mist-400">{row.label}</dt>
+                  <dd className="mt-1 text-base text-mist-200">{row.value}</dd>
                 </div>
               ))}
             </dl>
@@ -170,7 +170,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 {project.stack.map((t) => (
                   <span
                     key={t}
-                    className="rounded-full border border-ink-600 px-3 py-1 text-xs text-mist-300"
+                    className="rounded-full border border-ink-600 px-3 py-1 text-sm text-mist-300"
                   >
                     {t}
                   </span>
@@ -184,7 +184,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                   <h3 className="font-mono text-xs uppercase tracking-[0.22em] text-mist-400">
                     Team
                   </h3>
-                  <ul className="mt-4 flex flex-col gap-1 text-sm text-mist-300">
+                  <ul className="mt-4 flex flex-col gap-1 text-base text-mist-300">
                     {project.team.map((t) => (
                       <li key={t}>{t}</li>
                     ))}
