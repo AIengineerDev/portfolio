@@ -75,8 +75,8 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 <Image
                   src={project.cover.src}
                   alt={project.cover.alt}
-                  width={1876}
-                  height={1356}
+                  width={project.cover.width ?? 1876}
+                  height={project.cover.height ?? 1356}
                   priority
                   className="h-auto w-full"
                 />
@@ -168,8 +168,8 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
                 <Image
                   src={g.src}
                   alt={g.alt}
-                  width={1600}
-                  height={900}
+                  width={g.width ?? 1600}
+                  height={g.height ?? 900}
                   className="h-auto w-full rounded-2xl"
                 />
               </div>

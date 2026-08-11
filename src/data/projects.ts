@@ -26,6 +26,9 @@ export type Gallery = {
   src: string;
   alt: string;
   caption: string;
+  /** Intrinsic pixel size. Defaults suit a 4:3 screenshot. */
+  width?: number;
+  height?: number;
 };
 
 /** One horizontal tier of the system-architecture diagram. */
@@ -847,7 +850,103 @@ const twoTowers: Project = {
   ],
 };
 
-export const projects: Project[] = [omniSearch, twoTowers, careerProjection, onpace];
+const usport: Project = {
+  slug: "usport-ai",
+  title: "uSport.ai",
+  tagline:
+    "An AI recruiting platform built on a knowledge graph — ten agent surfaces, seven vector indexes, and a founding engineer.",
+  year: "2023 — present",
+  role: "Co-Founder & CTO — architecture, ML, full stack",
+  status: "shipped",
+  domain: "Knowledge Graph · Agents · RAG",
+  accent: ["#ff8a42", "#4ce9d9"],
+  cover: {
+    src: "/projects/usport-architecture.png",
+    alt: "uSport.ai system architecture: UI surfaces, API routes, Firebase, Neo4j knowledge graph, vector DB, and the LLM layer",
+    caption:
+      "The system as it stands: ten product surfaces over four service layers, every agent grounded in the graph.",
+    width: 3488,
+    height: 1580,
+  },
+  summary:
+    "uSport.ai matches student-athletes to college coaches. The hard part was never the chat interface — it was building a substrate factual enough that an agent could answer recruiting questions without inventing schools, times, or eligibility rules. That substrate is a Neo4j knowledge graph with 8M+ athletes, 51K coaches, 176K schools, and 15M+ swim results, with seven native vector indexes layered on top for retrieval. I architected and built it from an empty repository.",
+  stack: [
+    "Next.js",
+    "TypeScript",
+    "Neo4j Aura",
+    "Cypher",
+    "Claude",
+    "GPT-4o",
+    "text-embedding-3-small",
+    "Firebase",
+    "Firestore",
+    "Cloud Run",
+    "Cloud Functions",
+    "Stripe",
+    "Playwright / Scrapy",
+    "CrewAI",
+  ],
+  metrics: [
+    { label: "Athletes in the graph", value: "8M+", detail: "51K coaches · 176K schools" },
+    { label: "Swim results", value: "15M+", detail: "plus 350K D1 basketball games over 50 years" },
+    { label: "Vector indexes", value: "7", detail: "native to Neo4j — no separate vector store" },
+    { label: "Agent tools", value: "15+", detail: "across 6 RAG chains and 10 product surfaces" },
+  ],
+  specsHeading: "Platform at a glance",
+  specs: [
+    { label: "Graph", value: "Neo4j Aura — COACHES_AT, ATTENDS, COMMITTED_TO, PLAYS_SPORT" },
+    { label: "Embeddings", value: "text-embedding-3-small, 1536-d, indexed natively in Neo4j" },
+    { label: "Models", value: "Claude for every agent; GPT-4o for re-ranking, email, scoring" },
+    { label: "App", value: "Next.js on Firebase — Auth, Firestore, Storage, Cloud Functions" },
+    { label: "Domain graphs", value: "Swim technique, lacrosse, deaf sports, 1,400+ NCAA rules" },
+    { label: "Ingestion", value: "Swimcloud, Hudl, ON3, SportsRecruits, golf scrapers" },
+  ],
+  sections: [
+    {
+      heading: "Why a graph and not a vector store",
+      body: [
+        "Recruiting questions are relational. “Which D2 programs in my conference recruit 51-second 100 freestylers, and am I still eligible after transferring?” is four joins and a rules lookup, not a similarity search. Embeddings retrieve things that read alike; they cannot tell you that a school's slowest benchmark is faster than your best time, or that a contact period has closed.",
+        "So the ground truth is a Neo4j graph — 8M+ athletes, 51K coaches, 176K schools, 15M+ swim results, 350K D1 basketball games across fifty years, 120 years of Olympic history, and 1,400+ NCAA rules — traversed with Cypher. Agents call it as a tool and get facts back.",
+        "Retrieval sits on the same database rather than beside it. Seven vector indexes live natively in Neo4j — episodes, news, RSS, conversation memory, swim research, and generated swim and lacrosse plans — all embedded with text-embedding-3-small at 1536 dimensions. One store, so a retrieved passage and the entity it describes are one hop apart instead of one network call and a join key.",
+      ],
+    },
+    {
+      heading: "Ten surfaces, one substrate",
+      body: [
+        "The platform is not a single chatbot. Scout is the athlete's portal for discovering programs; Draft is the coach's for scouting and outreach; the Assistant is the general agent with 15+ tools and full RAG. Around those sit NIL valuation, career projection, drill planning, a teams hub, an NCAA compliance checker, and transfer-portal tracking.",
+        "Each has its own API route and its own tool set, but they all resolve to the same graph and the same indexes. Adding a surface means composing existing retrieval rather than standing up new infrastructure — which is the entire argument for putting the effort into the substrate first.",
+        "A representative flow: a coach asks Draft for prospects, Claude calls search_athletes against indexed Neo4j queries over 8M+ records, pulls a roster with get_school_roster, drafts outreach that goes out through Resend and gets logged to Firestore, and emits a report block that renders to PDF. The conversation turn is then embedded into the memory index so the next session starts informed.",
+      ],
+    },
+    {
+      heading: "Agent Gym — training data from simulation",
+      body: [
+        "Recruiting conversations are scarce, private, and slow to accumulate. Agent Gym generates them instead: Claude simulates both sides of a recruiting exchange and then judges the result, and every episode is embedded into a dedicated index.",
+        "Those episodes come back as in-context examples for Scout and Draft, so the production agents retrieve prior situations that resemble the one in front of them. It is a closed loop — simulation produces episodes, episodes ground the live agents, live behavior suggests what to simulate next — and it meant the agents were not starting cold on day one.",
+      ],
+    },
+    {
+      heading: "What the substrate makes cheap",
+      body: [
+        "Compliance is a good example of the payoff. NCAA rules are in the graph as data, so an eligibility check is a traversal that cross-references the athlete's own record against division-specific rules and contact periods, with the model interpreting rather than recalling. The failure mode of an LLM confidently misremembering an eligibility rule is designed out rather than prompt-engineered around.",
+        "Drill planning composes three retrievals at once — the swim technique graph for drills, faults, and biomechanics; a research index of PDF chunks; and a plan index of prior generations — which is why the same generator could later be lifted wholesale into the Onpace mobile app and produce identical plans.",
+        "Transfer-portal tracking ingests RSS, embeds it, writes entries as graph nodes, and surfaces relevant moves by similarity — the same four moves as everything else, which is the point.",
+      ],
+    },
+    {
+      heading: "Founding-engineer scope",
+      body: [
+        "Solo, from data to production: the scrapers and ETL that fill the graph, the Cypher and schema, the embedding pipelines behind all seven indexes, the agent tool definitions and RAG orchestration, the Next.js application, Firebase Auth and Firestore, Cloud Functions for credits and sync, Stripe billing, Gmail sequences, and PDF and Excel generation.",
+        "Some pieces are documented separately here: the two-tower retrieval model that ranks coach–athlete matches, and the multi-sport career-projection models that predict whether an athlete reaches the next level.",
+      ],
+    },
+  ],
+  links: [
+    { label: "uSport.ai", href: "https://app.usport.ai" },
+  ],
+};
+
+export const projects: Project[] = [usport, omniSearch, twoTowers, careerProjection, onpace];
 
 export function getProject(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
