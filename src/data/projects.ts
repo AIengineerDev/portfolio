@@ -31,6 +31,17 @@ export type Gallery = {
   height?: number;
 };
 
+/** A self-hosted demo clip. */
+export type VideoClip = {
+  src: string;
+  poster: string;
+  alt: string;
+  caption: string;
+  width: number;
+  height: number;
+  heading?: string;
+};
+
 /** One horizontal tier of the system-architecture diagram. */
 export type ArchTier = {
   label: string;
@@ -70,6 +81,7 @@ export type Project = {
   specs?: SpecRow[];
   specsHeading?: string;
   dropout?: DropoutPoint[];
+  video?: VideoClip;
   architecture?: Architecture;
   tables?: ResultsTable[];
   gallery?: Gallery[];
@@ -142,6 +154,16 @@ const omniSearch: Project = {
       { label: "Evaluation", value: "100 held-out seeds per configuration" },
       { label: "Perception", value: "RGB + thermal stack, altitude-conditioned" },
     ],
+    video: {
+      src: "/projects/omnisearch-demo.mp4",
+      poster: "/projects/omnisearch-demo-poster.jpg",
+      alt: "Screen recording of the OmniSearch viewer: drones sweep burning terrain while ground robots move to confirm survivors",
+      heading: "Watch a mission run",
+      caption:
+        "A full episode replayed in the 3D viewer — blue quadrotors sweeping 1 km² of Malibu Creek terrain while ground robots route between survivors and the fire front advances from the ridge. Ring colors mark each survivor's detection state; flight paths trail behind each agent.",
+      width: 1200,
+      height: 1002,
+    },
     dropout: [
       { dropout: 0, happo: 80, antColony: 72, lawnmower: 68 },
       { dropout: 30, happo: 82, antColony: 58, lawnmower: 62 },

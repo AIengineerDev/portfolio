@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { ArchitectureDiagram } from "@/components/ArchitectureDiagram";
 import { DropoutChart } from "@/components/DropoutChart";
 import { ResultsTable } from "@/components/ResultsTable";
+import { VideoFigure } from "@/components/VideoFigure";
 import { Reveal } from "@/components/Reveal";
 import { getProject, projects } from "@/data/projects";
 
@@ -126,6 +127,12 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
             </Reveal>
           ))}
         </div>
+
+        {project.video && (
+          <Reveal className="mt-16">
+            <VideoFigure data={project.video} />
+          </Reveal>
+        )}
 
         {project.dropout && (
           <Reveal className="mt-16">
