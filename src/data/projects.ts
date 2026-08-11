@@ -968,7 +968,208 @@ const usport: Project = {
   ],
 };
 
-export const projects: Project[] = [usport, omniSearch, twoTowers, careerProjection, onpace];
+const jailbreak: Project = {
+  slug: "jailbreak-detection",
+  title: "Jailbreak Detection",
+  tagline:
+    "Predicting whether a multimodal prompt will break a model's safety guardrails — before any content is generated.",
+  year: "2026",
+  role: "UC Berkeley DATASCI 207 — Applied Machine Learning",
+  status: "research",
+  domain: "AI Safety · Multimodal ML",
+  accent: ["#ff5f6d", "#a488ff"],
+  summary:
+    "Most jailbreak defenses are reactive: they read the model's output and decide afterwards whether it was harmful. That is too late — the harmful text already exists. This project asks whether success can be predicted from the prompt alone, using only features available before generation, and answers with a 26-dimensional feature vector, a two-branch network, and 93% macro recall across 17 policy classes.",
+  stack: [
+    "Python",
+    "TensorFlow",
+    "scikit-learn",
+    "TF-IDF",
+    "Detoxify",
+    "OCR",
+    "Pandas / NumPy",
+    "JailBreakV-28K",
+  ],
+  team: ["Gina Choi", "Oleksii Lavrenin", "Nan Wu"],
+  metrics: [
+    { label: "Macro recall", value: "93.0%", detail: "up from 69.4% for the text-only baseline" },
+    { label: "Accuracy", value: "98.5%", detail: "17-class, held-out test split" },
+    { label: "Benign prompts", value: "100%", detail: "recall and precision — no friction for real users" },
+    { label: "Prompts", value: "48K", detail: "28K multimodal attacks plus 20K benign" },
+  ],
+  specsHeading: "Experimental setup",
+  specs: [
+    { label: "Task", value: "17-class — benign plus 16 safety policy categories" },
+    { label: "Input", value: "26-dimensional pre-generation feature vector" },
+    { label: "Split", value: "80/10/10 stratified, 5-fold cross-validation" },
+    { label: "Primary metric", value: "Macro-average recall — false negatives are the risk" },
+    { label: "Regularization", value: "Dropout 0.3, early stopping at patience 5" },
+    { label: "Optimizer", value: "Adam, learning rate tuned 1e-4 vs 1e-5" },
+  ],
+  sections: [
+    {
+      heading: "Reacting too late",
+      body: [
+        "Existing defenses split into two camps, and both arrive after the useful moment. Post-generation detectors like JailGuard read the output and judge it — accurate, but the harmful content has already been produced. Model hardening trains on attack samples, which demands continuous retraining as attacks evolve and explains nothing about why a given input was risky.",
+        "Text-only defenses have a further problem in the multimodal setting: intent can be hidden inside the image, invisible to a text detector by construction. Typographic attacks like FigStep embed instructions as pixels; visual role-play encodes a harmful persona in a picture.",
+        "The gap is that nobody had built a systematic predictor that runs before generation. That is the question here — and it has a practical shape, because a pre-generation predictor can also say which policy is at risk, which is what makes a block explainable rather than arbitrary.",
+      ],
+    },
+    {
+      heading: "Features you can have before you answer",
+      body: [
+        "The dataset combines the JailBreakV-28K benchmark with 20,000 benign prompts for 48,000 samples, split 80/10/10 and stratified by policy. Overall attack success sits at 49.9%, so the target is close to balanced even though individual categories are not.",
+        "Every feature is available at prompt time. From text: length, roleplay markers (“you are…”), instruction-override markers (“ignore previous”), question counts, and a continuous harm score from Detoxify. From the image: OCR-extracted text, an LLM-generated description, and a binary FigStep flag. Plus one-hot encodings of policy category and attack method.",
+        "The unifying trick is that OCR output, image descriptions, and the query all land in the same TF-IDF vector space, so text and image evidence can be modelled jointly rather than bolted together late.",
+        "The benchmark had no success labels, so we derived them with a rule-based refusal classifier — refusal phrasing, very short responses — and hand-checked 100 random samples, finding 96% agreement. That is a real dependency and worth stating plainly: the ceiling on every number below is partly the quality of that labeller.",
+      ],
+    },
+    {
+      heading: "Why the exploratory work mattered",
+      body: [
+        "Attack success varies sharply by policy — around 70% for Malware against roughly 35% for Child Abuse — which is why policy category belongs in the model rather than being averaged away.",
+        "It varies by attack format too: logic-based manipulation succeeds around 65% of the time and persuasion around 60%, while query-relevant attacks manage about 32%. Reasoning-shaped attacks work better, which is the direct argument for keeping structural and instruction-marker features.",
+        "And jailbreak prompts are long — a median of about 477 tokens with a heavy right tail. Many attacks work by burying the request in elaborate instructions, so raw prompt length carries real signal.",
+      ],
+    },
+    {
+      heading: "Three models, one large jump",
+      body: [
+        "The progression was deliberate. Multinomial logistic regression on text alone set the floor at 69.4% recall. Adding image features to the same linear model moved recall to 69.6% — essentially nothing, though accuracy rose to 92.2%. A random forest, which can capture interactions the linear model cannot, reached 70.2% recall at 97.1% accuracy.",
+        "So for three models, recall barely moved. The visual features were present but the models could not use them.",
+        "The two-branch network changed that. Concatenated text and image TF-IDF vectors pass through 256- and 128-unit ReLU layers with dropout to a 128-dimensional embedding, while the scalar harm score gets its own branch into a 16-dimensional embedding. The two fuse into a 144-dimensional vector, through a 64-unit layer, to a 17-way softmax. Recall jumped to 93.0% at 98.5% accuracy — a 23.6-point gain over the baseline.",
+        "The lesson is not that deep learning wins. It is that multimodal features only pay off once the architecture can learn an interaction between them; concatenating modalities into a linear model buys accuracy on easy classes and almost no recall.",
+      ],
+    },
+    {
+      heading: "Where it fails, and why that matters most",
+      body: [
+        "Headline recall hides the distribution. On benign prompts the model is perfect — 100% recall and precision, meaning legitimate users meet no friction, which is what makes a safety filter deployable at all. Malware and Financial Fraud both exceed 0.97 F1.",
+        "The rare, high-sensitivity categories are the problem, and they are the ones that matter most. Child Abuse recall is 0.42 and the model is trigger-happy, flagging unrelated prompts — a direct consequence of twelve training examples. Health Consultation misses 30% of unlicensed medical advice requests, from ten examples.",
+        "So the honest summary is: this works on the high-volume technical threats it has data for, and it is not yet trustworthy on the long tail where a miss does the most harm. A macro-recall headline of 93% would obscure exactly that, which is why the per-category table is on this page.",
+      ],
+    },
+    {
+      heading: "The structural limitation",
+      body: [
+        "The bigger weakness is not the class imbalance — it is that the model never sees an image. Visual input reaches it as an LLM-generated textual description, which is an information bottleneck by construction: subtle visual cues and adversarial noise are lost in translation before the classifier gets a vote.",
+        "That is a real problem for an adversarial setting, where an attacker optimizes precisely against what the defender can perceive. The route forward is end-to-end multimodal encoders — CLIP-BERT or VisualBERT — where attention weighs visual and textual evidence directly instead of through a paraphrase.",
+      ],
+    },
+  ],
+  tables: [
+    {
+      heading: "Model comparison",
+      caption:
+        "Macro-average recall is the metric that matters — a false negative is an undetected attack. Note how little the image features buy until the architecture can fuse them.",
+      columns: ["Model", "Features", "Recall", "Accuracy"],
+      rows: [
+        ["Logistic regression (baseline)", "Text only", "69.4%", "85.1%"],
+        ["Logistic regression", "Text + image", "69.6%", "92.2%"],
+        ["Random forest", "Text + image", "70.2%", "97.1%"],
+        ["Two-branch DNN", "Embeddings (text + image)", "93.0%", "98.5%"],
+      ],
+      highlight: 2,
+      footnote:
+        "Held-out test split, 5-fold stratified cross-validation over 48,000 prompts.",
+    },
+    {
+      heading: "Per-category reliability",
+      caption:
+        "The headline number averages over categories with very different support. These are the four that decide whether the system is deployable.",
+      columns: ["Policy category", "Training samples", "Result", "Reading"],
+      rows: [
+        ["Benign", "20,000", "1.00", "Perfect recall and precision — no false alarms"],
+        ["Malware", "high", ">0.97 F1", "Near-perfect on the highest-volume threat"],
+        ["Financial Fraud", "high", ">0.97 F1", "Same — plenty of examples, reliable detection"],
+        ["Child Abuse", "12", "0.42 recall", "Over-flags unrelated prompts; unusable as-is"],
+        ["Health Consultation", "10", "misses 30%", "Nuanced medical requests slip through"],
+      ],
+      highlight: 2,
+    },
+  ],
+  architecture: {
+    caption:
+      "Everything upstream of the classifier is computable from the prompt alone — no model output is required.",
+    tiers: [
+      {
+        label: "Pre-generation features",
+        accent: "#ff5f6d",
+        blocks: [
+          {
+            title: "Text",
+            items: [
+              "Prompt length & question count",
+              "Roleplay markers (“you are…”)",
+              "Instruction overrides",
+              "Detoxify harm score",
+            ],
+          },
+          {
+            title: "Image",
+            items: [
+              "OCR-extracted text",
+              "LLM-generated description",
+              "FigStep typographic flag",
+              "Blank placeholder for text-only",
+            ],
+          },
+          {
+            title: "Categorical",
+            items: [
+              "17 policy categories, one-hot",
+              "Attack method encoding",
+              "Template · Persuade · Logic · FigStep",
+              "26-d vector in total",
+            ],
+          },
+        ],
+      },
+      {
+        label: "Two-branch network",
+        accent: "#a488ff",
+        blocks: [
+          {
+            title: "Text + image branch",
+            items: [
+              "Joint TF-IDF vector space",
+              "Dense 256 → ReLU → dropout",
+              "Dense 128 → ReLU → dropout",
+              "128-d embedding",
+            ],
+          },
+          {
+            title: "Auxiliary branch",
+            items: [
+              "Scalar harm score",
+              "Dense → ReLU",
+              "16-d embedding",
+              "Kept separate from sparse text",
+            ],
+          },
+          {
+            title: "Fusion & output",
+            items: [
+              "Concatenate → 144-d",
+              "Dense 64 → ReLU → dropout 0.3",
+              "Softmax over 17 classes",
+              "Adam, early stopping",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
+export const projects: Project[] = [
+  usport,
+  omniSearch,
+  twoTowers,
+  jailbreak,
+  careerProjection,
+  onpace,
+];
 
 export function getProject(slug: string): Project | undefined {
   return projects.find((p) => p.slug === slug);
