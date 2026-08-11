@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { ArchitectureDiagram } from "@/components/ArchitectureDiagram";
+import { DiagramFigure } from "@/components/DiagramFigure";
 import { DropoutChart } from "@/components/DropoutChart";
 import { ResultsTable } from "@/components/ResultsTable";
 import { VideoFigure } from "@/components/VideoFigure";
@@ -71,21 +71,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
 
         {project.cover && (
           <Reveal delay={0.1} className="mt-12">
-            <figure>
-              <div className="surface overflow-hidden rounded-3xl">
-                <Image
-                  src={project.cover.src}
-                  alt={project.cover.alt}
-                  width={project.cover.width ?? 1876}
-                  height={project.cover.height ?? 1356}
-                  priority
-                  className="h-auto w-full"
-                />
-              </div>
-              <figcaption className="mt-3 text-sm text-mist-400">
-                {project.cover.caption}
-              </figcaption>
-            </figure>
+            <DiagramFigure data={project.cover} />
           </Reveal>
         )}
 
@@ -170,18 +156,7 @@ export default async function ProjectPage({ params }: { params: Promise<Params> 
 
         {project.gallery?.map((g) => (
           <Reveal key={g.src} className="mt-16">
-            <figure>
-              <div className="surface overflow-hidden rounded-3xl p-3">
-                <Image
-                  src={g.src}
-                  alt={g.alt}
-                  width={g.width ?? 1600}
-                  height={g.height ?? 900}
-                  className="h-auto w-full rounded-2xl"
-                />
-              </div>
-              <figcaption className="mt-3 text-sm text-mist-400">{g.caption}</figcaption>
-            </figure>
+            <DiagramFigure data={g} />
           </Reveal>
         ))}
 

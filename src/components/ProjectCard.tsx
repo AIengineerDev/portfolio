@@ -37,6 +37,12 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
 
   const [from, to] = project.accent;
 
+  // Honor the cover's own shape (clamped) instead of forcing 16:9 — a wide
+  // architecture diagram cropped to 16:9 loses both edges.
+  const cover = project.cover;
+  const coverRatio = cover?.width && cover?.height ? cover.width / cover.height : 16 / 9;
+  const cardRatio = Math.min(2.4, Math.max(1.5, coverRatio));
+
   return (
     <motion.div
       ref={ref}
@@ -63,14 +69,17 @@ export function ProjectCard({ project, index }: { project: Project; index: numbe
         />
 
         {project.cover && (
-          <div className="relative aspect-[16/9] overflow-hidden border-b border-ink-600">
+          <div
+            className="relative overflow-hidden border-b border-ink-600"
+            style={{ aspectRatio: String(cardRatio) }}
+          >
             <Image
               src={project.cover.src}
               alt={project.cover.alt}
               fill
               sizes="(max-width: 768px) 100vw, 900px"
               priority={index === 0}
-              className="object-cover object-top transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+              className="object-cover object-center transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/20 to-transparent" />
             {hovered && !reduced && (
