@@ -1369,8 +1369,222 @@ const devdigest: Project = {
   },
 };
 
+const agentGym: Project = {
+  slug: "agent-gym",
+  title: "Agent Gym",
+  tagline:
+    "A simulation environment where recruiting agents negotiate against each other, get scored by a rival model, and feed their best runs back into production.",
+  year: "2026",
+  role: "uSport.ai · design and implementation",
+  status: "shipped",
+  domain: "Multi-Agent Simulation · RL-style Training",
+  accent: ["#35d99a", "#4aa8ff"],
+  cover: {
+    src: "/projects/agent-gym-episode.png",
+    alt: "Agent Gym running a live episode: agent dialogue, per-turn judge scores across four dimensions, and the judge's written reasoning",
+    caption:
+      "A live episode. The judge scores every turn on four weighted dimensions and writes its reasoning — including an explicit compliance note. Participant names are redacted here.",
+    width: 1280,
+    height: 800,
+  },
+  summary:
+    "Recruiting conversations are private, scarce, and slow to accumulate — a bad starting position for improving an agent that has to hold them. Agent Gym generates them instead: a coach agent and an athlete agent negotiate through structured phases against real profiles from the knowledge graph, a separate model scores every turn, and the episodes that score well come back as retrieval context for the agents running in production.",
+  stack: [
+    "TypeScript",
+    "Next.js",
+    "Claude Sonnet 4.5",
+    "GPT-5",
+    "Neo4j",
+    "Vector search",
+    "text-embedding-3-small",
+    "Server-Sent Events",
+    "Cloud Scheduler",
+    "Cloud Build",
+  ],
+  metrics: [
+    { label: "Episode modes", value: "3", detail: "two-agent negotiation plus two tool-using solo modes" },
+    { label: "Judge models", value: "2", detail: "Claude and GPT-5 — cross-model, never self-scored" },
+    { label: "Reward floor for reuse", value: "0.6", detail: "below it, an episode never becomes an example" },
+    { label: "Unattended training", value: "1/hr", detail: "Cloud Scheduler, deliberately throttled" },
+  ],
+  specsHeading: "How a run is configured",
+  specs: [
+    { label: "Agents", value: "Coach and Athlete, both Claude Sonnet 4.5" },
+    { label: "Judge", value: "Claude or GPT-5 — GPT-5 forced for auto-training" },
+    { label: "Turns", value: "4–20 for negotiation, up to 15 for solo research" },
+    { label: "Profiles", value: "Real athletes, coaches, and NCAA rules from Neo4j" },
+    { label: "Streaming", value: "SSE, turn by turn, watchable live" },
+    { label: "Storage", value: "GymEpisode + GymMessage nodes with 1536-d embeddings" },
+  ],
+  sections: [
+    {
+      heading: "The data you cannot buy",
+      body: [
+        "To improve an agent that negotiates recruiting, you want examples of recruiting negotiations going well. Those conversations happen in private inboxes and phone calls, they are commercially sensitive, and a platform accumulates them at the speed of real recruiting cycles — which is to say, far too slowly to train on.",
+        "So the environment manufactures them. A coach agent and an athlete agent talk to each other across three structured phases — match evaluation, deal negotiation, then enrollment and logistics — with terminal states at each boundary: no match, match confirmed, deal accepted, deal rejected, enrollment complete, stalled.",
+        "What keeps it from being fiction is that the participants are not invented. Both profiles are pulled from the platform's knowledge graph — real athletes with real event times, real coaches at real programs with real roster needs — alongside the NCAA rules that apply to that division. There is a generated fallback when the graph cannot supply a profile, but the default is grounded. One in five athletes is flagged international, which branches the episode into F-1 visas, I-20 issuance, and SEVIS logistics rather than skipping the hardest part of the process.",
+      ],
+    },
+    {
+      heading: "A judge that is not the player",
+      body: [
+        "The agents are Claude. The judge, for automated training, is GPT-5. That is deliberate: a model grading its own output has an obvious conflict, and cross-model evaluation is the cheapest available defense against a system that learns to satisfy its own preferences rather than to negotiate well. An earlier heuristic judge was removed entirely — every episode is now LLM-scored.",
+        "Scoring is explicit rather than a single vibe rating. Negotiation turns are weighted: offer-probability delta at 50% — is this conversation actually moving toward resolution — then factual grounding at 20% for citing real times, thresholds, and deadlines, regulatory compliance at 20% for staying inside NCAA rules, and sentiment alignment at 10%.",
+        "Solo research turns use a different rubric entirely: prospect quality 35%, research depth 25%, NCAA compliance 20%, action readiness 20%. And the judge is told which phase the turn belongs to, so a discovery turn is scored for breadth while a planning turn is scored for whether anyone could act on it. The same output would be graded differently depending on when it arrived — which is the point.",
+      ],
+    },
+    {
+      heading: "Agents that use the database, not just their memory",
+      body: [
+        "Beyond the two-agent negotiation, two solo modes drop a single agent into the platform with real tools and let it work: Cypher queries against athletes, schools, and stats; a search over NCAA rule nodes; and vector search over past episodes.",
+        "The coach mode mimics what a coach actually does on the product — choose a research objective, run one targeted query, read the results, decide what matters and what to look at next. The athlete mode does the inverse: find programs by sport and division, benchmark its own times against athletes already at those schools, check eligibility and scholarship rules.",
+        "These modes exist because the negotiation simulation only exercises dialogue. The solo modes exercise the thing that makes the dialogue credible — whether an agent can find the right facts in a large graph before it opens its mouth.",
+      ],
+    },
+    {
+      heading: "The loop that closes",
+      body: [
+        "Before an episode starts, the environment builds a query out of the sport, division, and both profiles, embeds it, and runs cosine similarity against every stored episode. Only episodes scoring at or above 0.6 total reward and ending in a genuinely good terminal state — deal accepted, enrollment complete, match confirmed — are eligible. The top three contribute their opening messages as few-shot examples, prepended to both agents' prompts.",
+        "The documentation is unusually specific about what this is not doing: it does not search mid-conversation, it does not splice in the highest-scoring individual message, and no humans are involved — it is agents learning from prior agents. What it provides is successful opening patterns, and the next step is named as mid-episode retrieval that finds the best continuation at the current phase.",
+        "The loop then leaves the gym. When a user's message to the platform's production assistant mentions recruiting, similar past episodes are pre-fetched from the same store and injected into its system prompt. Simulation is not a side experiment here; it is the mechanism by which the shipped agent gets better.",
+      ],
+    },
+    {
+      heading: "Coaching from the sideline",
+      body: [
+        "A human can steer a run in progress, and the design decision worth stating is what happens when they do: nothing pauses. The simulation streams turn by turn over SSE and never waits for input.",
+        "Feedback typed into the panel lands in an in-memory queue keyed by episode. At the start of the next turn the queue is drained, appended to the relevant agent's system prompt as a guidance block, and cleared. Submit something mid-generation and it applies to the following turn, not the current one.",
+        "That is asynchronous coaching rather than pause-and-resume, and it is the honest tradeoff: a simulation that blocks on human attention cannot also run unattended once an hour. Documenting it precisely matters more than the mechanism itself — the failure mode otherwise is someone typing guidance, watching the current turn ignore it, and concluding the feature is broken.",
+      ],
+    },
+    {
+      heading: "Running without anyone watching",
+      body: [
+        "Cloud Scheduler triggers a training run every hour against a bearer-token-protected endpoint, with the secret in Cloud Secret Manager and the job itself provisioned through Cloud Build rather than clicked into a console.",
+        "It generates one episode per run, cut down from five. That number is a cost decision written into the README rather than discovered on a bill: every episode is two agents plus a judge across up to twenty turns, and the arithmetic on a system that runs unattended forever is worth doing before you turn it on rather than after.",
+      ],
+    },
+  ],
+  gallery: [
+    {
+      src: "/projects/agent-gym-result.png",
+      alt: "A completed Agent Gym episode showing accumulated per-turn rewards, dimension averages, and the terminal state",
+      caption:
+        "The same episode at its terminal state. Per-turn rewards accumulate on the right, dimension averages settle, and the run ends with an explicit outcome rather than a score alone.",
+      width: 1280,
+      height: 800,
+    },
+  ],
+  architecture: {
+    caption:
+      "Profiles come out of the graph, episodes go back into it, and the production assistant reads from the same store.",
+    tiers: [
+      {
+        label: "Inputs — from the knowledge graph",
+        accent: "#4aa8ff",
+        blocks: [
+          {
+            title: "Athlete profile",
+            items: [
+              "Sport, position, school, state",
+              "GPA, personal records, awards",
+              "Preferences and aid needs",
+              "20% international → visa branch",
+            ],
+          },
+          {
+            title: "Coach profile",
+            items: [
+              "Title, school, NCAA division",
+              "Roster needs and scholarship budget",
+              "Minimum academic and athletic bars",
+              "Enrollment and NLI deadlines",
+            ],
+          },
+          {
+            title: "Rules & precedent",
+            items: [
+              "NCAARule nodes per division",
+              "Top-3 past episodes as few-shot",
+              "Filtered: reward ≥ 0.6",
+              "Filtered: good terminal states only",
+            ],
+          },
+        ],
+      },
+      {
+        label: "The episode",
+        accent: "#35d99a",
+        blocks: [
+          {
+            title: "Agents",
+            items: [
+              "Coach and Athlete — Claude Sonnet 4.5",
+              "Or one solo agent with tools",
+              "query_database · search_ncaa_rules",
+              "search_training_episodes",
+            ],
+          },
+          {
+            title: "Phases",
+            items: [
+              "Match evaluation → negotiation",
+              "→ enrollment & logistics",
+              "Solo: discovery → analysis → planning",
+              "Terminal state at each boundary",
+            ],
+          },
+          {
+            title: "Judge",
+            items: [
+              "GPT-5 for auto-training, Claude for manual",
+              "Four weighted dimensions per turn",
+              "Phase-aware rubric",
+              "Written reasoning, not just a number",
+            ],
+          },
+        ],
+      },
+      {
+        label: "Outputs — back into the graph",
+        accent: "#a488ff",
+        blocks: [
+          {
+            title: "Stored",
+            items: [
+              "GymEpisode + GymMessage nodes",
+              "Per-turn reward and scores",
+              "Terminal reason, manual or auto",
+              "1536-d summary embedding",
+            ],
+          },
+          {
+            title: "Reused",
+            items: [
+              "Few-shot for later episodes",
+              "Injected into the production assistant",
+              "Vector index on episode summaries",
+              "Only above the reward floor",
+            ],
+          },
+          {
+            title: "Operated",
+            items: [
+              "Cloud Scheduler, hourly",
+              "1 episode per run — cost control",
+              "Bearer token in Secret Manager",
+              "Job provisioned via Cloud Build",
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
 export const projects: Project[] = [
   usport,
+  agentGym,
   devdigest,
   omniSearch,
   twoTowers,
