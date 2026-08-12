@@ -876,9 +876,9 @@ const usport: Project = {
   slug: "usport-ai",
   title: "uSport.ai",
   tagline:
-    "An AI recruiting platform built on a knowledge graph — ten agent surfaces, seven vector indexes, and a founding engineer.",
+    "An AI recruiting platform built on a knowledge graph — ten agent surfaces, seven vector indexes, one substrate.",
   year: "2023 — present",
-  role: "Co-Founder & CTO — architecture, ML, full stack",
+  role: "Architecture, ML, and full stack",
   status: "shipped",
   domain: "Knowledge Graph · Agents · RAG",
   accent: ["#ff8a42", "#4ce9d9"],
@@ -956,7 +956,7 @@ const usport: Project = {
       ],
     },
     {
-      heading: "Founding-engineer scope",
+      heading: "Scope",
       body: [
         "Solo, from data to production: the scrapers and ETL that fill the graph, the Cypher and schema, the embedding pipelines behind all seven indexes, the agent tool definitions and RAG orchestration, the Next.js application, Firebase Auth and Firestore, Cloud Functions for credits and sync, Stripe billing, Gmail sequences, and PDF and Excel generation.",
         "Some pieces are documented separately here: the two-tower retrieval model that ranks coach–athlete matches, and the multi-sport career-projection models that predict whether an athlete reaches the next level.",

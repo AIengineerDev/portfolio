@@ -2,11 +2,9 @@ import Link from "next/link";
 import { Hero } from "@/components/Hero";
 import { ProjectCard } from "@/components/ProjectCard";
 import { Reveal } from "@/components/Reveal";
-import { RoleList } from "@/components/RoleList";
 import {
   certifications,
   education,
-  experience,
   profile,
   skills,
   stats,
@@ -50,13 +48,9 @@ export default function Home() {
             </div>
           </Reveal>
 
-          <div className="mt-16">
-            <RoleList roles={experience} />
-          </div>
         </div>
       </section>
 
-      {/* ---------------------------------------------------------------- */}
       <section id="education" className="scroll-mt-24 px-6 py-24">
         <div className="mx-auto max-w-5xl">
           <Reveal>
