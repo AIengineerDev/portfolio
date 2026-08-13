@@ -501,10 +501,10 @@ const careerProjection: Project = {
         "ROC-AUC. Train on class ≤ cutoff, test on every class after it — the split production actually faces.",
     },
     {
-      heading: "Calibration — out-of-fold ECE",
+      heading: "Calibration — does 80% mean 80%?",
       caption:
-        "Whether a displayed percentage means what it claims, measured across 10 probability buckets.",
-      columns: ["Model", "OOF ROC-AUC", "ECE", "Reading"],
+        "Expected Calibration Error (ECE) measures whether a displayed probability matches reality: predictions are sorted into 10 confidence buckets, the average predicted value in each is compared to the rate that actually occurred, and the gaps are averaged by bucket size. ROC-AUC says whether athletes are ranked correctly; ECE says whether the number attached to them is true. Reported in percentage points — 8.9 pp means a stated probability is off by about 9 points on average.",
+      columns: ["Model", "Out-of-fold ROC-AUC", "ECE", "Reading"],
       rows: [
         ["HS → D1 — gradient boosting", "0.651", "8.9 pp", "Top decile reliable, middle approximate"],
         ["HS → Pro men — gradient boosting", "0.877", "0.6 pp", "Essentially honest at a 1.7% base rate"],
