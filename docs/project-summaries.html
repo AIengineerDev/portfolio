@@ -62,6 +62,11 @@
   td.v strong { color: var(--ink); font-weight: 600; }
   .none { color: var(--muted); font-style: italic; }
 
+  /* A project that runs long may break across pages rather than leaving a gap. */
+  .p.wide { page-break-inside: auto; break-inside: auto; }
+  .p.wide tr { page-break-inside: avoid; break-inside: avoid; }
+  code { font: 8.5pt/1.4 "SF Mono", Menlo, Consolas, monospace; background: var(--chip); padding: 0 2px; }
+
   .foot {
     margin-top: 18px; padding-top: 8px;
     border-top: 1px solid var(--rule);
@@ -126,16 +131,53 @@
 </div>
 
 <!-- 4 -->
-<div class="p">
+<div class="p wide">
   <div class="p-head">
-    <h2>Career Projection</h2><span class="dom">Applied ML · Sports analytics</span><span class="yr">2026</span>
+    <h2>Career Projection — NBA</h2><span class="dom">Applied ML · Sports analytics</span><span class="yr">2026</span>
   </div>
-  <p class="p-sum">Predicts whether a high-school athlete reaches a D1 roster or a professional league, across eight sports. Built so a coach reading a percentage can also read how much to trust it.</p>
+  <p class="p-sum">Three separate models answering three different questions about a basketball career. The pipeline covers eight sports; this section uses basketball only, since it is the deepest and every figure below is quoted from a committed metrics JSON.</p>
+
   <table>
-    <tr><td class="k">Models</td><td class="v"><strong>Logistic regression</strong> and <strong>gradient-boosting classifiers</strong> in a scikit-learn <code>Pipeline(median impute → scale → classifier)</code>; a <strong>GradientBoostingRegressor</strong> for NBA career length. ~20 models over 8 sports.</td></tr>
-    <tr><td class="k">Training</td><td class="v">Per-sport pipelines: scrape → ETL into Neo4j → features → train → export. Features shared between trainer and scorer via one module so they cannot drift. Leakage controls: recruiting overlays sourced before the prediction moment; games-played and era-asymmetric stats explicitly excluded and recorded in the metrics JSON.</td></tr>
-    <tr><td class="k">Evaluation</td><td class="v">5-fold stratified CV <em>and</em> forward-in-time temporal holdout (train on class ≤ cutoff, test on later classes), plus 10-bucket out-of-fold Expected Calibration Error and top-N hit tables.</td></tr>
-    <tr><td class="k">Results</td><td class="v">Lacrosse HS→D1: CV 0.653 → <strong>temporal 0.609</strong>. HS→Pro men: CV 0.869 → <strong>temporal 0.706</strong> (−16.3 pp; the temporal number is what the product displays). Calibration: HS→Pro men <strong>ECE 0.6 pp</strong> after removing class balancing (was 24 pp). Top-200 precision 99.5% at a 60.8% base rate (1.64× lift). Basketball HS→NBA GBM CV-AUC 0.79; NBA longevity MAE 3.63 yrs vs 3.85 baseline, R² 0.077.</td></tr>
+    <tr><td class="k">Data</td><td class="v">
+      <strong>5,368 NBA players indexed</strong> from Basketball-Reference season files — 4,452 retired with complete career data, 916 still active. Median career 4.0 years, mean 5.29, p90 12.0; <strong>41.3% last two years or fewer</strong>, which is the attrition the models are trying to anticipate. High-school box scores come from a MaxPreps scrape; recruiting overlays from 247Sports, On3, ESPN-100 and McDonald's All-American.
+    </td></tr>
+
+    <tr><td class="k">Model 1<br>HS → NBA</td><td class="v">
+      <strong>Question:</strong> will this high-school player ever reach the NBA?<br>
+      <strong>Model:</strong> logistic regression and gradient boosting, compared. <strong>22 features</strong> — 13 MaxPreps box-score fields (PPG, RPG, APG, SPG, FG%, 3P%, FT%, TS%, eFG%, height, weight, games, seasons) plus 9 recruiting-overlay fields.<br>
+      <strong>Data:</strong> 705 players — 364 who reached the NBA, 341 D1 college players who did not.<br>
+      <strong>Result:</strong> GBM <strong>CV ROC-AUC 0.795 ± 0.032</strong>, logistic regression 0.766 ± 0.025. GBM recall 0.670, precision 0.772.
+    </td></tr>
+
+    <tr><td class="k">Model 2<br>College → NBA</td><td class="v">
+      <strong>Question:</strong> given a college career, will this player play in the NBA?<br>
+      <strong>Model:</strong> logistic regression (selected) vs gradient boosting. <strong>7 features</strong> — college per-game points, rebounds, assists, FG%, 3P%, FT%, minutes.<br>
+      <strong>Data:</strong> 361 players — 166 NBA, 195 non-NBA.<br>
+      <strong>Result:</strong> ROC-AUC <strong>0.910</strong>, recall 0.905, precision 0.776. <em>This number is inflated and the pipeline says so</em> — see Honest limits below.
+    </td></tr>
+
+    <tr><td class="k">Model 3<br>NBA longevity</td><td class="v">
+      <strong>Question:</strong> how many years will this NBA career last?<br>
+      <strong>Model:</strong> GradientBoostingRegressor (regression, not classification). Features: rookie year, position bucket, era.<br>
+      <strong>Data:</strong> 4,452 retired players — 3,561 train / 891 test.<br>
+      <strong>Result:</strong> <strong>MAE 3.63 years</strong> against a 3.85-year mean-predictor baseline; <strong>R² 0.077</strong>.
+    </td></tr>
+
+    <tr><td class="k">Output</td><td class="v">
+      Models 1 and 2 output a <strong>calibrated probability per player</strong> plus a ranked list. Model 3 outputs a per-player record — predicted total career years, years elapsed, projected years remaining, and a projected end year. It is scored over <strong>120 active players</strong>; a typical row reads <code>predicted_career_years 6.69 · years_in_so_far 1 · projected_remaining 5.69 · projected_end_year 2032</code>. Logistic-regression coefficients are exported to JSON so the product scores new inputs in the browser with no model server.
+    </td></tr>
+
+    <tr><td class="k">How<br>accuracy is<br>established</td><td class="v">
+      <strong>1. Held-out data, never training data.</strong> 5-fold stratified cross-validation; every AUC above is the mean across folds with its standard deviation, so run-to-run variance is visible rather than hidden by one lucky split.<br>
+      <strong>2. Against a baseline, not in isolation.</strong> The longevity model is only meaningful next to the mean predictor — 3.63 vs 3.85 MAE is a 0.22-year gain, and stating it that way makes the modest size obvious.<br>
+      <strong>3. Beyond a single number.</strong> Precision, recall, F1 and a full confusion matrix at threshold 0.5 are stored per model, because AUC alone hides which class is being missed.<br>
+      <strong>4. Forward in time.</strong> Random folds let a model learn from graduating classes that, in production, have not happened yet. The back-test trains on class ≤ cutoff and tests on later classes. On lacrosse, where this has been measured, HS→Pro fell from <strong>0.869 to 0.706</strong> — a 16-point drop. The basketball harness is written but its labelled scrape data is not committed, so on a fresh clone it reports the missing files and exits rather than writing fabricated numbers; the CV figures above are labelled as CV for that reason.<br>
+      <strong>5. Calibration, not just ranking.</strong> AUC says whether players are ordered correctly; it says nothing about whether "80%" means eighty percent. A 10-bucket out-of-fold Expected Calibration Error is computed per model. On lacrosse this caught a model at 24 pp ECE — predicting above 90% where the true rate was 5% — caused by class balancing; retraining without it brought ECE to <strong>0.6 pp</strong>.
+    </td></tr>
+
+    <tr><td class="k">Honest<br>limits</td><td class="v">
+      Every metrics file ships a <code>caveat</code> field that the product renders next to the number. <strong>College → NBA:</strong> the 0.910 AUC uses random NCAA players as negatives, so it mostly proves NBA players outproduced the average college player — not that it can separate good players who make it from good players who don't. <strong>HS → NBA:</strong> MaxPreps rebounding and assist data are sparse, coverage skews to 2006 onward, and 0.795 should be read as the honest answer to how much high-school box scores alone predict the NBA. <strong>Longevity:</strong> R² 0.077 means career length is mostly noise given rookie-year features, so the product shows a range rather than a point estimate.
+    </td></tr>
   </table>
 </div>
 
