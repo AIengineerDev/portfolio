@@ -343,10 +343,10 @@ const careerProjection: Project = {
   specs: [
     { label: "Sports", value: "Basketball, lacrosse, football, soccer, tennis, golf, volleyball, beach VB" },
     { label: "Prediction tasks", value: "HS→D1, HS→Pro, College→Pro, career longevity" },
-    { label: "Model shape", value: "Pipeline(median impute → scale → LogReg | GBM)" },
+    { label: "Model shape", value: "Pipeline(median impute → scale → logistic regression | gradient boosting)" },
     { label: "Validation", value: "5-fold stratified CV + forward-in-time temporal holdout" },
     { label: "Calibration", value: "10-bucket out-of-fold ECE, reported per model" },
-    { label: "Serving", value: "LogReg coefficients exported to JSON, scored in-browser" },
+    { label: "Serving", value: "Logistic-regression coefficients exported to JSON, scored in-browser" },
   ],
   sections: [
     {
@@ -428,13 +428,46 @@ const careerProjection: Project = {
         "Three questions, three vantage points in a career. Every figure quoted from the committed metrics JSON for that model.",
       columns: ["Model", "Data", "Features", "Result"],
       rows: [
-        ["HS → NBA", "705 (364 / 341)", "22", "GBM CV-AUC 0.795 ± 0.032"],
-        ["College → NBA", "361 (166 / 195)", "7", "LogReg AUC 0.910 — inflated, see below"],
-        ["NBA longevity", "4,452 (3,561 / 891)", "3", "MAE 3.63 yrs vs 3.85 baseline · R² 0.077"],
+        ["HS → NBA", "705 (364 / 341)", "22", "Gradient boosting — CV ROC-AUC 0.795 ± 0.032"],
+        ["College → NBA", "361 (166 / 195)", "7", "Logistic regression — ROC-AUC 0.910, inflated"],
+        ["NBA longevity", "4,452 (3,561 / 891)", "3", "Gradient-boosting regressor — MAE 3.63 yrs vs 3.85 baseline, R² 0.077"],
       ],
       highlight: 3,
       footnote:
         "Data shows total (positive / negative) for the classifiers and total (train / test) for the regression. Classifier scores are 5-fold stratified cross-validation.",
+    },
+    {
+      heading: "Pipeline coverage — what the graph holds",
+      caption:
+        "The population the basketball models are built on, as the product reports it.",
+      columns: ["Layer", "Count", "Detail"],
+      rows: [
+        ["High schools covered", "49,622", "752 with a basketball coach on file"],
+        ["NBA players studied", "5,368", "916 playing in the NBA today"],
+        ["European youth prospects", "133", "typical height 196 cm, U16–U20"],
+        ["Class of 2027, US boys", "75,331", "42 committed, 75,289 uncommitted"],
+        ["Median NBA career", "4 years", "41% are out of the league within 2 seasons"],
+      ],
+      highlight: 1,
+    },
+    {
+      heading: "Scored prospects — US boys, class of 2027",
+      caption:
+        "Live output from the product's prospect table. These are high-school minors, so names, clubs, and commitments are removed and only the model's own scores remain.",
+      columns: ["#", "State", "Position", "D1 %", "D2 fit", "D3 fit", "NBA %"],
+      rows: [
+        ["1", "GA", "Shooting guard", "60%", "84%", "97%", "36%"],
+        ["2", "MD", "Point guard", "55%", "80%", "96%", "29%"],
+        ["4", "PA", "Point guard", "55%", "80%", "96%", "22%"],
+        ["5", "PA", "Point guard", "55%", "80%", "96%", "37%"],
+        ["6", "VA", "Shooting guard", "50%", "75%", "94%", "19%"],
+        ["7", "FL", "Shooting guard", "60%", "84%", "97%", "34%"],
+        ["8", "NC", "Point guard", "50%", "75%", "94%", "15%"],
+        ["10", "NC", "Shooting guard", "55%", "80%", "96%", "24%"],
+      ],
+      highlight: 6,
+      footnote:
+        "Note the division columns move in lockstep — 60/84/97, then 55/80/96, then 50/75/94 — because they are driven by the same underlying tier. The NBA column is the one that separates players, and it is also the column with the least training support behind it. Ranked out of the top 100 of 75,331 athletes in the graph.",
     },
     {
       heading: "Sample longevity projections — active players",
@@ -458,10 +491,10 @@ const careerProjection: Project = {
       heading: "Random folds vs. forward-in-time holdout",
       caption:
         "Lacrosse, the sport where the temporal back-test has real measured numbers. The right column is what the product reports.",
-      columns: ["Model", "Random CV (GBM)", "Temporal (GBM)", "Drift"],
+      columns: ["Model", "Random-fold CV", "Temporal holdout", "Drift"],
       rows: [
-        ["HS → D1", "0.653", "0.609", "−4.4 pp"],
-        ["HS → Pro (men)", "0.869", "0.706", "−16.3 pp"],
+        ["HS → D1 — gradient boosting", "0.653", "0.609", "−4.4 pp"],
+        ["HS → Pro men — gradient boosting", "0.869", "0.706", "−16.3 pp"],
       ],
       highlight: 2,
       footnote:
@@ -473,9 +506,9 @@ const careerProjection: Project = {
         "Whether a displayed percentage means what it claims, measured across 10 probability buckets.",
       columns: ["Model", "OOF ROC-AUC", "ECE", "Reading"],
       rows: [
-        ["HS → D1 (GBM)", "0.651", "8.9 pp", "Top decile reliable, middle approximate"],
-        ["HS → Pro men (GBM)", "0.877", "0.6 pp", "Essentially honest at a 1.7% base rate"],
-        ["HS → Pro women (GBM)", "0.702", "0.2 pp", "Essentially honest at a 0.4% base rate"],
+        ["HS → D1 — gradient boosting", "0.651", "8.9 pp", "Top decile reliable, middle approximate"],
+        ["HS → Pro men — gradient boosting", "0.877", "0.6 pp", "Essentially honest at a 1.7% base rate"],
+        ["HS → Pro women — gradient boosting", "0.702", "0.2 pp", "Essentially honest at a 0.4% base rate"],
       ],
       highlight: 2,
     },
@@ -535,7 +568,7 @@ const careerProjection: Project = {
             items: [
               "Median imputation (sparse HS stats)",
               "StandardScaler for logreg",
-              "LogisticRegression + GBM, compared",
+              "Logistic regression + gradient boosting, compared",
               "Features shared trainer ↔ scorer",
             ],
           },
@@ -575,9 +608,9 @@ const careerProjection: Project = {
           {
             title: "Served",
             items: [
-              "LogReg coefficients → JSON",
+              "Logistic-regression coefficients → JSON",
               "Scored in-browser, no model server",
-              "GBM batch scoring server-side",
+              "Gradient boosting: batch scoring server-side",
               "Cohort projections into the app",
             ],
           },
