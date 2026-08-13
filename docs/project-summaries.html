@@ -164,7 +164,7 @@
     </td></tr>
 
     <tr><td class="k">Output</td><td class="v">
-      Models 1 and 2 output a <strong>calibrated probability per player</strong> plus a ranked list. Model 3 outputs a per-player record — predicted total career years, years elapsed, projected years remaining, and a projected end year. It is scored over <strong>120 active players</strong>; a typical row reads <code>predicted_career_years 6.69 · years_in_so_far 1 · projected_remaining 5.69 · projected_end_year 2032</code>. Logistic-regression coefficients are exported to JSON so the product scores new inputs in the browser with no model server.
+      Models 1 and 2 output a <strong>calibrated probability per player</strong> plus a ranked list. Model 3 outputs a per-player record — predicted total career years, years elapsed, projected years remaining, and a projected end year. It is scored over <strong>120 active players</strong>; a typical row reads <code>predicted_career_years 6.69 · years_in_so_far 1 · projected_remaining 5.69 · projected_end_year 2032</code>. Across all 120 the prediction takes <strong>only four distinct values</strong>, set entirely by position bucket — wings 6.69, bigs 6.49, guards 4.90, forwards 4.24 — with only the end year moving inside a bucket. That is what R² = 0.077 looks like as output rather than as a statistic, and it is why the product shows a range rather than a point estimate. Logistic-regression coefficients are exported to JSON so the product scores new inputs in the browser with no model server.
     </td></tr>
 
     <tr><td class="k">How<br>accuracy is<br>established</td><td class="v">

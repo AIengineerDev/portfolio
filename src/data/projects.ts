@@ -310,7 +310,7 @@ const careerProjection: Project = {
   domain: "Applied ML · Sports Analytics",
   accent: ["#a488ff", "#4ce9d9"],
   summary:
-    "Recruiting runs on confident guesses about teenagers. Career Projection replaces some of that with measured probability: given a high-school athlete's box scores, recruiting overlays, and profile signals, how likely are they to reach a D1 roster, or a professional league? It ships across eight sports — and it is built so that a coach reading a percentage can also read exactly how much to trust it.",
+    "Recruiting runs on confident guesses about teenagers. Career Projection replaces some of that with measured probability: given a high-school athlete's box scores, recruiting overlays, and profile signals, how likely are they to reach a D1 roster, or a professional league? It ships across eight sports, and basketball is walked through end to end below — three models, what they emit, and how their accuracy is established rather than asserted.",
   stack: [
     "Python",
     "scikit-learn",
@@ -365,6 +365,31 @@ const careerProjection: Project = {
       ],
     },
     {
+      heading: "A worked example: the three NBA models",
+      body: [
+        "Basketball is the deepest of the eight, so it is worth following end to end. It is not one model — it is three, answering three different questions from three different vantage points in a career.",
+        "HS → NBA asks whether a high-school player ever reaches the league. It runs on 22 features: thirteen MaxPreps box-score fields — points, rebounds, assists, steals, shooting splits, true shooting, effective field-goal percentage, height, weight, games, seasons — plus nine recruiting overlays. Trained on 705 players: 364 who made the NBA against 341 Division I players who did not. Gradient boosting reaches 0.795 cross-validated ROC-AUC against 0.766 for logistic regression.",
+        "College → NBA asks the same question one stage later, from seven college per-game features. Trained on 361 players, 166 of whom reached the NBA. Logistic regression wins at 0.910 AUC — and that number is the least trustworthy on this page, for reasons below.",
+        "NBA longevity is a regression rather than a classification: given a player already in the league, how many years will the career last? Trained on 4,452 retired players split 3,561 / 891, from rookie year, position bucket, and era.",
+      ],
+    },
+    {
+      heading: "What comes out",
+      body: [
+        "The two classifiers emit a calibrated probability per athlete plus a ranked list. Logistic-regression coefficients are exported to JSON so the product scores a new profile in the browser as the athlete edits it — no model server, no cold start.",
+        "The longevity regressor emits a record per player: predicted total career years, years already elapsed, projected years remaining, and a projected end year. It currently scores the 120 active players in the index.",
+        "The underlying population is 5,368 NBA players — 4,452 retired with complete careers and 916 active. Median career length is 4.0 years, mean 5.29, ninetieth percentile 12.0, and 41.3% of players last two years or fewer. That attrition is the thing the models exist to anticipate.",
+      ],
+    },
+    {
+      heading: "What the projections actually look like",
+      body: [
+        "Scoring all 120 active players produces exactly four distinct predictions, and which one a player receives is determined entirely by position bucket: wings 6.69 years, bigs 6.49, guards 4.90, forwards 4.24. Only the projected end year varies within a bucket, and only because players entered in different seasons.",
+        "That is what an R² of 0.077 looks like when you stop reading it as a statistic and start reading it as output. Given rookie year, position, and era, the model has learned little beyond a position average — which is a fair summary of how much those three features can know.",
+        "The response is to report it rather than dress it up. The interface presents longevity as a range instead of a point estimate, and the honest next step is written down: adding height, draft position, and college production is what would make this model earn a point estimate.",
+      ],
+    },
+    {
       heading: "Where the honest number came from",
       body: [
         "Random k-fold cross-validation is the wrong tool here. Shuffling athletes across graduating classes lets the model learn from cohorts that, in production, have not happened yet. It reliably reports a number better than the one you will get.",
@@ -397,6 +422,38 @@ const careerProjection: Project = {
     },
   ],
   tables: [
+    {
+      heading: "The three NBA models",
+      caption:
+        "Three questions, three vantage points in a career. Every figure quoted from the committed metrics JSON for that model.",
+      columns: ["Model", "Data", "Features", "Result"],
+      rows: [
+        ["HS → NBA", "705 (364 / 341)", "22", "GBM CV-AUC 0.795 ± 0.032"],
+        ["College → NBA", "361 (166 / 195)", "7", "LogReg AUC 0.910 — inflated, see below"],
+        ["NBA longevity", "4,452 (3,561 / 891)", "3", "MAE 3.63 yrs vs 3.85 baseline · R² 0.077"],
+      ],
+      highlight: 3,
+      footnote:
+        "Data shows total (positive / negative) for the classifiers and total (train / test) for the regression. Classifier scores are 5-fold stratified cross-validation.",
+    },
+    {
+      heading: "Sample longevity projections — active players",
+      caption:
+        "Real output rows from the scored cohort of 120 active players, identities removed. Predicted career years takes only four distinct values across all 120.",
+      columns: ["Player", "Pos", "Rookie", "Yrs in", "Predicted", "Remaining", "Ends"],
+      rows: [
+        ["Player 01", "G-F", "2023", "1", "6.69", "5.69", "2029"],
+        ["Player 02", "C", "2024", "1", "6.49", "5.49", "2029"],
+        ["Player 03", "C-F", "2024", "2", "6.49", "4.49", "2029"],
+        ["Player 05", "F-G", "2024", "3", "6.69", "3.69", "2030"],
+        ["Player 07", "C", "2025", "1", "6.49", "5.49", "2030"],
+        ["Player 09", "G", "2026", "1", "4.90", "3.90", "2030"],
+        ["Player 10", "F", "2026", "1", "4.24", "3.24", "2029"],
+      ],
+      highlight: 4,
+      footnote:
+        "Wings 6.69 · bigs 6.49 · guards 4.90 · forwards 4.24. Within a bucket only the end year moves, and only with the rookie season — the prediction itself is a position average. This is R² = 0.077 rendered as rows.",
+    },
     {
       heading: "Random folds vs. forward-in-time holdout",
       caption:
