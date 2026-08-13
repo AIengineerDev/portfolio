@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Oleksii Lavrenin — Project Summaries</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm 14mm; }
+
+  :root {
+    --ink: #14161f;
+    --body: #33384a;
+    --muted: #6b7186;
+    --rule: #d8dbe4;
+    --accent: #b4441f;
+    --chip: #f3f4f8;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font: 10pt/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--body);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  h1, h2, h3 { color: var(--ink); margin: 0; }
+
+  /* ---- cover header ---- */
+  .head { border-bottom: 2px solid var(--ink); padding-bottom: 10px; margin-bottom: 4px; }
+  .head h1 { font-size: 20pt; letter-spacing: -0.4px; }
+  .head .sub { margin-top: 4px; font-size: 9.5pt; color: var(--muted); }
+  .head .meta { margin-top: 8px; font-size: 8.5pt; color: var(--muted); }
+
+  .lede {
+    margin: 14px 0 20px;
+    font-size: 9.5pt;
+    color: var(--body);
+    border-left: 2px solid var(--accent);
+    padding-left: 10px;
+  }
+  .lede strong { color: var(--ink); }
+
+  /* ---- one project ---- */
+  .p { page-break-inside: avoid; break-inside: avoid; margin-bottom: 17px; }
+
+  .p-head { display: flex; align-items: baseline; gap: 8px; border-bottom: 1px solid var(--rule); padding-bottom: 4px; }
+  .p-head h2 { font-size: 12pt; letter-spacing: -0.2px; }
+  .p-head .dom { font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+  .p-head .yr { margin-left: auto; font-size: 8pt; color: var(--muted); }
+
+  .p-sum { margin: 6px 0 8px; font-size: 9.5pt; }
+
+  table { width: 100%; border-collapse: collapse; }
+  td { vertical-align: top; padding: 3.5px 0; font-size: 9pt; }
+  td.k {
+    width: 78px; padding-right: 10px;
+    font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--muted); white-space: nowrap; padding-top: 5px;
+  }
+  td.v strong { color: var(--ink); font-weight: 600; }
+  .none { color: var(--muted); font-style: italic; }
+
+  .foot {
+    margin-top: 18px; padding-top: 8px;
+    border-top: 1px solid var(--rule);
+    font-size: 8pt; color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Oleksii (Alex) Lavrenin — Project Summaries</h1>
+  <div class="sub">Models, training, evaluation, and results across eight projects</div>
+  <div class="meta">oleksii.lavrenin@gmail.com · linkedin.com/in/oleksii-lavrenin · Tampa Bay, FL</div>
+</div>
+
+<p class="lede">
+  Every figure below is a measured number from the project's own artifacts — metrics JSONs, papers, or
+  diagnostic outputs. Where a project has <strong>no trained model or no formal evaluation</strong>, this
+  document says so rather than borrowing credibility from the ones that do.
+</p>
+
+<!-- 1 -->
+<div class="p">
+  <div class="p-head">
+    <h2>uSport.ai</h2><span class="dom">Knowledge graph · Agents · RAG</span><span class="yr">2023 – present</span>
+  </div>
+  <p class="p-sum">AI recruiting platform matching student-athletes to NCAA coaches. Ten product surfaces over one substrate: a Neo4j graph of 8M+ athletes, 51K coaches, 176K schools, 15M+ swim results and 1,400+ NCAA rules, with seven vector indexes native to the same database.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v">Claude (all agents), GPT-4o (re-ranking, scoring, email), <strong>text-embedding-3-small</strong> (1536-d). Task models documented separately below.</td></tr>
+    <tr><td class="k">Training</td><td class="v"><span class="none">No model trained at platform level</span> — retrieval and agent behavior are grounded by Cypher traversals and vector search over indexed content.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">Per-subsystem (see Two-Tower Retrieval and Career Projection). Agent quality measured through Agent Gym's judge rubric.</td></tr>
+    <tr><td class="k">Results</td><td class="v">In production. 27.9M-node graph, 8.4M athlete profiles, 7 vector indexes, 15+ agent tools across 6 RAG chains.</td></tr>
+  </table>
+</div>
+
+<!-- 2 -->
+<div class="p">
+  <div class="p-head">
+    <h2>Agent Gym</h2><span class="dom">Multi-agent simulation</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Simulation environment where a coach agent and an athlete agent negotiate across three structured phases against real profiles from the graph. A separate model scores every turn; high-scoring episodes become retrieval context for the production assistant.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v">Agents: <strong>Claude Sonnet 4.5</strong>. Judge: <strong>GPT-5</strong> (forced for auto-training) or Claude. Embeddings: text-embedding-3-small.</td></tr>
+    <tr><td class="k">Training</td><td class="v"><strong>No gradient updates.</strong> Improvement is in-context: episodes scoring ≥ 0.6 total reward and ending in a successful terminal state are retrieved as few-shot examples for later episodes and for the live assistant. Cloud Scheduler generates 1 episode/hour unattended.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">Cross-model LLM judge, phase-aware, four weighted dimensions per turn — offer-probability delta 50%, factual grounding 20%, regulatory compliance 20%, sentiment 10%. Solo-research mode uses a separate 35/25/20/20 rubric.</td></tr>
+    <tr><td class="k">Results</td><td class="v">3 episode modes in production; episodes stored as graph nodes with 1536-d embeddings and consumed by the shipped recruiting assistant.</td></tr>
+  </table>
+</div>
+
+<!-- 3 -->
+<div class="p">
+  <div class="p-head">
+    <h2>Two-Tower Retrieval</h2><span class="dom">NLP · Dense retrieval</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Bidirectional coach–athlete matching for college swimming recruiting. UC Berkeley DATASCI 266 (NLP with Deep Learning). Tests whether decoder-LLM normalization of inputs beats contrastive fine-tuning.</p>
+  <table>
+    <tr><td class="k">Model</td><td class="v"><strong>BAAI/bge-large-en-v1.5</strong> (1024-d, 512 tokens), shared by both towers. Plus <strong>T5-small</strong> for match explanations.</td></tr>
+    <tr><td class="k">Training</td><td class="v">Contrastive fine-tuning, <strong>MultipleNegativesRankingLoss</strong>, 3 epochs, 1,196 triplets. Hard negatives = coaches at schools swimming the same events where the athlete is <em>not</em> competitive. Ground truth from 22,974 benchmark-derived pairs.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">70/30 split by swimmer (511 train / 220 test, disjoint — no leakage). P@K, MRR, nDCG@10, plus negative-pair AUC-ROC and bootstrap CIs.</td></tr>
+    <tr><td class="k">Results</td><td class="v">Forward MRR <strong>0.304 → 0.883</strong> from fine-tuning (2.9×); LLM-normalization treatment 0.909 but with overlapping CIs — <strong>fine-tuning is the effect, normalization is not</strong>. Top-1 hit rate 83.6%. Reverse direction 0.045 → 0.202 (4.5× and still weak — coach profiles carry little distinctive text). Negative separation 0.015 → 0.086, AUC 0.633 → 0.666. T5 explanations: ROUGE ≈ 0.53 on n=2 — illustrative only.</td></tr>
+  </table>
+</div>
+
+<!-- 4 -->
+<div class="p">
+  <div class="p-head">
+    <h2>Career Projection</h2><span class="dom">Applied ML · Sports analytics</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Predicts whether a high-school athlete reaches a D1 roster or a professional league, across eight sports. Built so a coach reading a percentage can also read how much to trust it.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v"><strong>Logistic regression</strong> and <strong>gradient-boosting classifiers</strong> in a scikit-learn <code>Pipeline(median impute → scale → classifier)</code>; a <strong>GradientBoostingRegressor</strong> for NBA career length. ~20 models over 8 sports.</td></tr>
+    <tr><td class="k">Training</td><td class="v">Per-sport pipelines: scrape → ETL into Neo4j → features → train → export. Features shared between trainer and scorer via one module so they cannot drift. Leakage controls: recruiting overlays sourced before the prediction moment; games-played and era-asymmetric stats explicitly excluded and recorded in the metrics JSON.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">5-fold stratified CV <em>and</em> forward-in-time temporal holdout (train on class ≤ cutoff, test on later classes), plus 10-bucket out-of-fold Expected Calibration Error and top-N hit tables.</td></tr>
+    <tr><td class="k">Results</td><td class="v">Lacrosse HS→D1: CV 0.653 → <strong>temporal 0.609</strong>. HS→Pro men: CV 0.869 → <strong>temporal 0.706</strong> (−16.3 pp; the temporal number is what the product displays). Calibration: HS→Pro men <strong>ECE 0.6 pp</strong> after removing class balancing (was 24 pp). Top-200 precision 99.5% at a 60.8% base rate (1.64× lift). Basketball HS→NBA GBM CV-AUC 0.79; NBA longevity MAE 3.63 yrs vs 3.85 baseline, R² 0.077.</td></tr>
+  </table>
+</div>
+
+<!-- 5 -->
+<div class="p">
+  <div class="p-head">
+    <h2>OmniSearch</h2><span class="dom">Multi-agent reinforcement learning</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Simulation platform for testing coordinated drone and ground-robot swarms in wildfire search-and-rescue. UC Berkeley MIDS capstone.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v"><strong>HAPPO</strong> (heterogeneous-agent PPO, via HARL) as the primary policy; <strong>MAPPO</strong> and <strong>IPPO</strong> as controlled comparisons. Perception: <strong>YOLOv8s</strong> detectors plus a probabilistic detection model during RL.</td></tr>
+    <tr><td class="k">Training</td><td class="v">VMAS wildfire scenario on real USGS/OpenStreetMap terrain, physical units, γ = 0.99, 900 steps @ 2 s = 30 min simulated per episode. 4 UAVs, 3 UGVs, 5–10 survivors on 1 km². BC warm-start and DAgger imitation available. Detectors fine-tuned on synthetic composites.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">100 held-out seeds per configuration against six scripted baselines (lawnmower, ant-colony, highest-confidence, random walk). Communication-dropout sweep 0–100%. Detectors evaluated against <em>real</em> datasets, not their own validation split.</td></tr>
+    <tr><td class="k">Results</td><td class="v">Mission success <strong>80%</strong> vs 72% (ant-colony) and 68% (lawnmower). Survivor confirmation ~10% faster. Under communication dropout the learned policy holds 76–82% through 70% loss while baselines fall ~14 points immediately. Detection: HERIDAL aerial 0.86 recall @ 0.50 precision; HIT-UAV thermal mAP50 0.923 real-trained vs 0.167 synthetic-only.</td></tr>
+  </table>
+</div>
+
+<!-- 6 -->
+<div class="p">
+  <div class="p-head">
+    <h2>Jailbreak Detection</h2><span class="dom">AI safety · Multimodal ML</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Predicts whether a multimodal prompt will break an LLM's safety guardrails <em>before</em> any content is generated, and which policy it would violate. UC Berkeley DATASCI 207.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v">Baseline <strong>multinomial logistic regression</strong>; <strong>random forest</strong>; and a <strong>two-branch DNN</strong> (TensorFlow) — text+image TF-IDF → 256 → 128 ReLU with dropout → 128-d embedding, fused with a 16-d harm-score branch → 144-d → 64 → 17-way softmax.</td></tr>
+    <tr><td class="k">Training</td><td class="v">48,000 prompts (JailBreakV-28K + 20K benign), 80/10/10 stratified. 26-d pre-generation feature vector: prompt length, roleplay and instruction-override markers, Detoxify harm score, OCR text, LLM image descriptions, FigStep flag. Dropout 0.3, early stopping patience 5, Adam, LR tuned 1e-4 vs 1e-5.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">Macro-average recall (false negatives are the risk), 5-fold stratified CV, per-category confusion matrices. Labels derived by a rule-based refusal classifier validated at 96% human agreement on 100 samples.</td></tr>
+    <tr><td class="k">Results</td><td class="v">Recall <strong>69.4% → 93.0%</strong>, accuracy 98.5%. Notably, adding image features to the linear model moved recall only 69.4 → 69.6, and random forest to 70.2 — <strong>multimodal features paid off only once the architecture could fuse them</strong>. Benign: 1.00 recall and precision. Malware and Financial Fraud &gt; 0.97 F1. Long tail fails: Child Abuse 0.42 recall (12 training samples), Health misses 30% (10 samples).</td></tr>
+  </table>
+</div>
+
+<!-- 7 -->
+<div class="p">
+  <div class="p-head">
+    <h2>DevDigest</h2><span class="dom">Developer tools · Applied LLM</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Local-first AI pull-request reviewer whose engine cannot cite a line that is not in the diff. Also a course template: a minimal working starter plus eight lessons that each add one feature back.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v">Provider-injected LLM — <strong>Anthropic, OpenAI, or OpenRouter</strong>. <span class="none">No model trained.</span></td></tr>
+    <tr><td class="k">Training</td><td class="v"><span class="none">Not applicable.</span> Quality comes from retrieval and constraint: a <code>repo-intel</code> index (ast-grep symbols, dependency-cruiser import graph, PageRank + git hotness) supplies a repo map as prompt context, computed once on clone.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v">A mandatory <strong>grounding gate</strong>: every finding is checked mechanically against the diff and dropped if it cites no real changed line; the verdict score is recomputed from survivors rather than trusted from the model. 73 test files across five suites — hermetic units with a stubbed provider, testcontainers Postgres integration, deterministic browser e2e — each with its own CI workflow.</td></tr>
+    <tr><td class="k">Results</td><td class="v">Working end to end: 36K lines of TypeScript across five packages. Untrusted diffs are fenced with an injection guard; structured output validated via Zod-derived JSON Schema with parse-and-repair.</td></tr>
+  </table>
+</div>
+
+<!-- 8 -->
+<div class="p">
+  <div class="p-head">
+    <h2>Onpace</h2><span class="dom">Mobile · Applied LLM</span><span class="yr">2026</span>
+  </div>
+  <p class="p-sum">Swim-coaching iOS app (App Store, v1.0.4). Every generative surface is bounded so the model proposes and the coach disposes.</p>
+  <table>
+    <tr><td class="k">Models</td><td class="v"><strong>Claude Sonnet</strong> for plan generation, in a callable Cloud Function. Retrieval: Neo4j swim knowledge graph + vector search with <strong>text-embedding-3-small</strong> (1536-d). <span class="none">No model trained.</span></td></tr>
+    <tr><td class="k">Training</td><td class="v"><span class="none">Not applicable.</span> Hybrid graph + vector RAG. Anti-repetition: a rolling per-athlete history feeds the 4 most recent generated sessions back into the prompt (3 persisted forward) so plans progress instead of looping.</td></tr>
+    <tr><td class="k">Evaluation</td><td class="v"><span class="none">No formal offline evaluation.</span> Safety is enforced structurally — AI plans arrive as drafts into a coach's editor, adjustment can only modify an existing coach workout (preserving focus and authorship, dropping paddles on reported shoulder pain), and video review structures the coach's own narration rather than grading the swimmer.</td></tr>
+    <tr><td class="k">Results</td><td class="v">Shipped to the App Store. Swimmer-reported outcomes from reviews: 100 m pace 1:45 → 1:38 in six weeks; one beginner from not completing a length to 400 m continuous.</td></tr>
+  </table>
+</div>
+
+<div class="foot">
+  Figures are drawn from committed metrics JSONs, capstone reports, and diagnostic outputs in each project's
+  repository. Where a project reports both random-fold and temporal-holdout scores, the temporal number is the
+  one quoted. Portfolio and full case studies available on request.
+</div>
+
+</body>
+</html>
