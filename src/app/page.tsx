@@ -36,7 +36,7 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-ink-600 bg-ink-600 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-ink-600 bg-ink-600 sm:grid-cols-3">
               {stats.map((s) => (
                 <div key={s.label} className="bg-ink-800 p-6">
                   <div className="text-3xl font-semibold tabular-nums text-flux-400">

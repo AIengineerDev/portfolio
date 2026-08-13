@@ -128,5 +128,4 @@ export const stats = [
   { value: "UC Berkeley", label: "M.S. Information & Data Science" },
   { value: "14 yrs", label: "building software, the last several in AI/ML" },
   { value: "27.9M", label: "node knowledge graph in production" },
-  { value: "0.920", label: "retrieval MRR, 3× over baseline" },
 ];
