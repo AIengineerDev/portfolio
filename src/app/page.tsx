@@ -112,18 +112,18 @@ export default function Home() {
             <h2 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">Skills</h2>
           </Reveal>
 
-          <div className="mt-10 flex flex-col gap-6">
+          <div className="mt-12 flex flex-col gap-7">
             {skills.map((group, i) => (
               <Reveal key={group.label} delay={i * 0.05}>
-                <div className="grid gap-3 border-t border-ink-700 pt-6 sm:grid-cols-[210px_1fr] sm:gap-6">
-                  <h3 className="font-mono text-[11px] uppercase tracking-[0.18em] text-ember-400">
+                <div className="grid gap-4 border-t border-ink-700 pt-7 sm:grid-cols-[230px_1fr] sm:gap-8">
+                  <h3 className="font-mono text-xs uppercase tracking-[0.18em] text-ember-400">
                     {group.label}
                   </h3>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {group.items.map((it) => (
                       <span
                         key={it}
-                        className="rounded-full border border-ink-600 bg-white/[0.04] px-3 py-1.5 text-sm text-mist-300"
+                        className="rounded-full border border-ink-600 bg-white/[0.05] px-4 py-2 text-base text-mist-200"
                       >
                         {it}
                       </span>
