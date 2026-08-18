@@ -8,7 +8,7 @@ import { Footer } from "@/components/Footer";
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://oleksiilavrenin.com"),
+  metadataBase: new URL("https://oleksiilavrenin.ai"),
   title: {
     default: "Oleksii Lavrenin — AI / ML Engineer",
     template: "%s · Oleksii Lavrenin",

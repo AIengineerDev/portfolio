@@ -104,6 +104,8 @@ const omniSearch: Project = {
       alt: "OmniSearch 3D strategy viewer: drones and ground robots searching burning terrain",
       caption:
         "The browser trajectory viewer — 4 UAVs, 3 UGVs, 10 survivors on 1 km² of real Malibu Creek terrain.",
+      width: 1800,
+      height: 1301,
     },
     summary:
       "Wildfire search-and-rescue teams cannot afford to discover coordination failures in the field. OmniSearch pairs a physically scaled wildfire simulator with heterogeneous multi-agent RL so drone + ground-robot deployments can be designed, stress-tested, and tuned before anyone flies.",
@@ -977,8 +979,8 @@ const usport: Project = {
     alt: "uSport.ai system architecture: UI surfaces, API routes, Firebase, Neo4j knowledge graph, vector DB, and the LLM layer",
     caption:
       "The system as it stands: ten product surfaces over four service layers, every agent grounded in the graph.",
-    width: 3488,
-    height: 1580,
+    width: 1800,
+    height: 815,
   },
   summary:
     "uSport.ai matches student-athletes to college coaches. The hard part was never the chat interface — it was building a substrate factual enough that an agent could answer recruiting questions without inventing schools, times, or eligibility rules. That substrate is a Neo4j knowledge graph with 8M+ athletes, 51K coaches, 176K schools, and 15M+ swim results, with seven native vector indexes layered on top for retrieval. I architected and built it from an empty repository.",
@@ -1267,8 +1269,8 @@ const devdigest: Project = {
     alt: "DevDigest studio: a pull-request queue with per-PR score, findings by severity, review status, and run cost",
     caption:
       "The studio's pull-request queue — score, findings by severity, and the run cost of each review. From the design reference for the full product.",
-    width: 2880,
-    height: 1560,
+    width: 1800,
+    height: 975,
   },
   summary:
     "DevDigest reviews pull requests with an LLM, entirely on your own machine. It is also a teaching artifact: a deliberately minimal starter that works end to end on day one, plus eight lessons that each add one real feature back. The design problem running through both is trust — an AI reviewer that invents a line number is worse than no reviewer, so the engine is built so it cannot.",
