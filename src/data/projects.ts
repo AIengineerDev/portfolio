@@ -648,7 +648,7 @@ const usport: Project = {
   title: "uSport.ai",
   tagline:
     "An AI recruiting platform built on a knowledge graph — ten agent surfaces, seven vector indexes, one substrate.",
-  year: "2023 — present",
+  year: "2025",
   role: "Architecture, ML, and full stack",
   status: "shipped",
   domain: "Knowledge Graph · Agents · RAG",
@@ -744,7 +744,7 @@ const jailbreak: Project = {
   title: "Jailbreak Detection",
   tagline:
     "Predicting whether a multimodal prompt will break a model's safety guardrails — before any content is generated.",
-  year: "2026",
+  year: "2025",
   role: "UC Berkeley DATASCI 207 — Applied Machine Learning",
   status: "research",
   domain: "AI Safety · Multimodal ML",
