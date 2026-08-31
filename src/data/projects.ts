@@ -1242,8 +1242,16 @@ const devdigest: Project = {
       alt: "DevDigest agent performance dashboard: total runs, total cost and average accept rate tiles, a per-agent table sorted by accept rate with runs, average cost, average duration and last run, and cost broken down by agent and by model",
       caption:
         "Which agents earn their keep, with accept rate as the quality signal. A 100% accept rate off two decided findings is labelled “small sample” rather than printed as a clean win — the same refusal to over-claim that makes an unevaluated agent read “never run” instead of 0.00. Cost is broken out by agent and by model, so an expensive agent and an expensive model are separable.",
-      width: 2534,
-      height: 1394,
+      width: 2538,
+      height: 1392,
+    },
+    {
+      src: "/projects/devdigest-cost-breakdown.png",
+      alt: "DevDigest cost breakdown: two donut charts with legends, one splitting spend by reviewer agent and one splitting the same spend by model",
+      caption:
+        "The same spend split two ways. An agent is expensive because of how often it runs and how much context it carries; a model is expensive per token. Reporting one number would leave you unable to tell which lever to pull — the General Reviewer is the largest line by agent, and a single model is most of the bill regardless of which agent spent it.",
+      width: 1860,
+      height: 588,
     },
     {
       src: "/projects/devdigest-multi-agent.png",
