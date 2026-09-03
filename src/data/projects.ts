@@ -1488,10 +1488,173 @@ const agentGym: Project = {
   },
 };
 
+const healerML: Project = {
+  slug: "healer-ml",
+  title: "Healer ML",
+  tagline:
+    "Open-source ML for disease screening and treatment research — starting with a structure-based virtual screen against LSD1 in small-cell lung cancer.",
+  year: "2026",
+  role: "Founder · ML & computational chemistry",
+  status: "research",
+  domain: "Computational Drug Discovery",
+  accent: ["#4ce9d9", "#ff7a2f"],
+  summary:
+    "I lost my father to lung cancer in 2010. It was found too late — effective treatment for early-stage disease already existed, and the failure was detection. Healer ML is the attempt to point what I do know at that problem: an open repository where every disease gets a screening and a treatment track, and where the code, the data, the results and the failed runs are all public. The first target is LSD1 (KDM1A), a demethylase overexpressed in small-cell lung cancer.",
+  stack: [
+    "Python",
+    "RDKit",
+    "AutoDock Vina 1.2.7",
+    "Meeko",
+    "gemmi",
+    "py3Dmol",
+    "pandas",
+    "NumPy",
+    "SciPy",
+    "Jupyter / Colab",
+  ],
+  metrics: [
+    {
+      label: "Active–decoy separation",
+      value: "+1.79 kcal/mol",
+      detail: "10 known actives vs 10 random library compounds, p = 9.1e-5, Cohen d = 2.58",
+    },
+    {
+      label: "Pose accuracy",
+      value: "2.2 Å",
+      detail: "docked centroid vs the crystallographic ligand in PDB 5LHH",
+    },
+    {
+      label: "Stable hits",
+      value: "7 of 300",
+      detail: "survive ligand efficiency, scaffold dedup, and three-seed re-docking",
+    },
+    {
+      label: "Novel chemistry",
+      value: "7 of 7",
+      detail: "below 0.4 Tanimoto to every known active above pChEMBL 8.5",
+    },
+  ],
+  specsHeading: "Screen configuration",
+  specs: [
+    { label: "Receptor", value: "PDB 5LHH — LSD1–CoREST with bound reversible inhibitor 6X0" },
+    { label: "Box", value: "22 Å cube centred on the crystallographic ligand; FAD retained" },
+    { label: "Ligand prep", value: "RDKit ETKDG single conformer + MMFF, Meeko → PDBQT" },
+    { label: "Docking", value: "AutoDock Vina 1.2.7, exhaustiveness 4 for triage, 32 for refinement" },
+    { label: "Actives set", value: "3,944 ChEMBL compounds — 1,950 covalent excluded, 1,994 used" },
+    { label: "Library", value: "99,990 compounds; 300 docked in this run at ~29 s each on 2 CPUs" },
+    { label: "Cutoff", value: "affinity ≤ −10.09 kcal/mol (decoy mean − 1.5 SD), ligand efficiency ≥ 0.30" },
+  ],
+  sections: [
+    {
+      heading: "Why the ligand-based approach had to be abandoned",
+      body: [
+        "The first attempt was a QSAR/similarity screen over roughly 1.1 million compounds pulled from ChEMBL and ZINC. It returned nothing. The applicability domain rejected 91% of catalogue chemistry outright, and not a single surviving compound scored above p_active 0.25.",
+        "That is a real result, not a bug. Similarity-driven models can only find chemistry that resembles what they were trained on, and the known LSD1 chemotypes are narrow. If a novel scaffold binds LSD1, a ligand-based model is structurally incapable of noticing.",
+        "Docking has no such limitation: it scores against the protein, so chemistry unlike anything in ChEMBL is still in scope. The cost is that docking fails silently and confidently — which is what the rest of this project is really about.",
+      ],
+    },
+    {
+      heading: "Two failed receptors, and what they taught the pipeline",
+      body: [
+        "Version 5 used a generic “remove ligands and waters” prep, which deleted FAD along with the solvent. FAD is a covalently attached cofactor, not a ligand: stripping it opens a 53-atom cavity that Vina fills happily with almost anything. Random ZINC compounds outscored real nanomolar inhibitors by 1.2 kcal/mol. Every number in that run was noise, and it looked like a working pipeline.",
+        "Version 6 tried to fix that by keeping FAD and inferring the pocket from its geometry — an offset from the FAD N5 atom. The box landed inside solid protein. Every score came back positive, meaning steric clash rather than binding, at +49 and +17 kcal/mol.",
+        "Version 8 stops guessing. It scans candidate structures for one that already contains a bound druglike heteroatom group, takes 5LHH with its reversible inhibitor 6X0, centres a 22 Å box on that ligand's own coordinates, and retains cofactors from an explicit keep-list. The box is sized against the measured ligand span, not a default.",
+      ],
+    },
+    {
+      heading: "Validation is the product",
+      body: [
+        "Nothing downstream is allowed to run until the setup proves it can tell real inhibitors from random chemistry. Ten known potent reversible actives are docked against ten random library compounds: actives mean −10.49, decoys mean −8.70, a separation of +1.79 kcal/mol at p = 9.1e-5 and Cohen d = 2.58.",
+        "The active set needed one non-obvious correction. Tranylcypromine-class inhibitors — 1,950 of the 3,944 ChEMBL actives — bind covalently to FAD. Vina scores non-covalent binding only, so it cannot rank them correctly no matter how good the box is. Validating on them would have produced a false failure; they are excluded, leaving 1,994 reversible compounds.",
+        "Score separation still says nothing about whether the pose is in the right place. So the most potent reversible active is re-docked and its centroid compared against the crystallographic ligand that was stripped from the receptor: 2.2 Å apart. The pipeline is finding the actual binding site, not an incidental surface pocket.",
+        "The decoy distribution then calibrates the cutoff rather than a round number being picked by hand: −10.09 kcal/mol is the decoy mean minus 1.5 SD, which keeps 10 of 10 known actives and rejects roughly 93% of random chemistry.",
+      ],
+    },
+    {
+      heading: "Screening, and the filters that stop the obvious artefacts",
+      body: [
+        "300 library compounds were docked at exhaustiveness 4 — triage resolution — with a per-compound line of output, checkpointing every 10 results, and a wall-clock budget so a Colab runtime dying mid-run costs nothing. Resume reads back the checkpoint, but the receptor file is MD5-stamped and the run refuses to resume across a receptor change. A stale checkpoint had silently mixed two runs' numbers twice before that guard existed.",
+        "Vina rewards size: a floppy 45-heavy-atom molecule scores well without binding anything. Ligand efficiency — affinity per heavy atom — is the correction, thresholded at 0.30. Hits are then deduplicated to one compound per Murcko scaffold, so a single bad assumption cannot consume all of the picks. 7 compounds out of 134 successfully docked cleared both filters.",
+        "Similarity to known actives is reported but deliberately not filtered on. A hit far from known chemistry is exactly what this notebook exists to find — and also the hit most likely to be an artefact. All 7 sit below 0.4 Tanimoto to every ChEMBL active above pChEMBL 8.5.",
+      ],
+    },
+    {
+      heading: "Refinement, and what the shortlist actually means",
+      body: [
+        "Vina is stochastic, and exhaustiveness 4 is triage. Each survivor is re-docked at exhaustiveness 32 across three seeds; anything swinging more than 0.5 kcal/mol between seeds was a search artefact rather than a pose. All 7 held, the widest spread being ±0.17 kcal/mol. The best, CHEMBL6356, refines to −12.06 ± 0.02.",
+        "Which is where honesty matters more than the numbers. Five of the seven share a bis-aminoquinolinium motif — large, doubly cationic, conformationally floppy. That class is a well-known frequent hitter in docking, and electrostatics in a scoring function this simple flatter it. Vina also scores no desolvation penalty worth the name for permanent charges.",
+        "So the correct reading of this shortlist is: the pipeline is validated, the poses are in the right pocket, and the output is a set of hypotheses that need pose inspection against the substrate channel and FAD contacts before anyone spends money on compounds. The notebook ships a py3Dmol viewer for exactly that step, and it is the last thing the run does rather than the first.",
+      ],
+    },
+    {
+      heading: "How the repository is meant to grow",
+      body: [
+        "Twelve diseases are scaffolded — lung, breast, colorectal, prostate and pancreatic cancer, glioblastoma, Alzheimer's, Parkinson's, type-2 diabetes, tuberculosis, malaria, and antimicrobial resistance. Each gets the same two-track shape, because finding a candidate and improving one have genuinely different inputs, metrics and failure modes: screening/ holds virtual screening, QSAR, hit triage and diagnostic classifiers; treatment/ holds lead optimisation, ADMET and toxicity, resistance modelling and patient stratification.",
+        "Curated inputs small enough to version live in data/ and are committed; everything a notebook produces — docked poses, checkpoints, PDBQT files, downloaded structures — goes to results/ and is gitignored. A result that matters gets promoted to data/ deliberately rather than by accident.",
+        "It is Apache 2.0 with a CLA and a contributing guide, because the point is not a portfolio piece. I am an ML engineer, not a doctor, and this needs people who know imaging, chemistry, statistics and clinical practice. Everything is public, including the two receptor preparations that produced confident nonsense.",
+      ],
+    },
+  ],
+  tables: [
+    {
+      heading: "Validation — known actives vs random library",
+      caption:
+        "Reversible ChEMBL actives only; covalent tranylcypromine-class inhibitors are excluded because Vina scores non-covalent binding.",
+      columns: ["Group", "n", "Mean affinity", "Best", "Result"],
+      rows: [
+        ["Known potent actives", "10", "−10.49", "−11.09", "—"],
+        ["Random library", "10", "−8.70", "−9.77", "—"],
+        ["Separation", "—", "+1.79", "—", "p = 9.1e-5, d = 2.58"],
+      ],
+      highlight: 2,
+      footnote:
+        "Calibrated cutoff −10.09 kcal/mol = decoy mean − 1.5 SD; keeps 10/10 actives, rejects ~93% of random chemistry.",
+    },
+    {
+      heading: "Shortlist after three-seed refinement at exhaustiveness 32",
+      caption:
+        "7 of 300 docked compounds clear affinity ≤ −10.09 and ligand efficiency ≥ 0.30, one per Murcko scaffold. All 7 are score-stable across seeds.",
+      columns: ["Compound", "Triage", "Mean ± SD", "Worst", "LE", "Max Tanimoto"],
+      rows: [
+        ["CHEMBL6356", "−12.06", "−12.06 ± 0.02", "−12.04", "0.326", "0.174"],
+        ["CHEMBL6361", "−11.42", "−11.51 ± 0.17", "−11.39", "0.301", "0.143"],
+        ["CHEMBL6315", "−11.29", "−11.38 ± 0.02", "−11.36", "0.305", "0.149"],
+        ["CHEMBL269729", "−11.30", "−11.32 ± 0.01", "−11.31", "0.314", "0.149"],
+        ["CHEMBL6354", "−11.08", "−11.08 ± 0.01", "−11.07", "0.308", "0.153"],
+        ["CHEMBL6323", "−10.93", "−10.92 ± 0.01", "−10.91", "0.331", "0.244"],
+        ["CHEMBL6293", "−10.82", "−10.85 ± 0.03", "−10.82", "0.361", "0.193"],
+      ],
+      highlight: 2,
+      footnote:
+        "Five of the seven share a bis-aminoquinolinium motif — a known docking frequent-hitter class. Treated as hypotheses pending pose inspection, not as leads.",
+    },
+    {
+      heading: "Receptor preparations that failed, and how they failed",
+      caption:
+        "Both produced a pipeline that ran cleanly and returned meaningless numbers. Kept in the repository on purpose.",
+      columns: ["Version", "Preparation", "Symptom"],
+      rows: [
+        ["v5", "Generic strip of ligands and waters — removed FAD", "Decoys outscored nanomolar actives by 1.2 kcal/mol"],
+        ["v6", "FAD retained, pocket inferred from FAD N5 geometry", "All scores positive (+49, +17) — box inside solid protein"],
+        ["v8", "Structure with a bound inhibitor; box centred on it", "Actives separate by +1.79; pose lands 2.2 Å from crystal"],
+      ],
+      highlight: 2,
+    },
+  ],
+  links: [
+    { label: "healerML on GitHub", href: "https://github.com/AIengineerDev/healerML" },
+    {
+      label: "Lung-cancer track — LSD1 screen",
+      href: "https://github.com/AIengineerDev/healerML/tree/main/diseases/lung-cancer",
+    },
+  ],
+};
+
 export const projects: Project[] = [
   usport,
   agentGym,
   devdigest,
+  healerML,
   omniSearch,
   twoTowers,
   jailbreak,
